@@ -1,0 +1,91 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Offre d'Emploi - {{ emploi.titre }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid px-4">
+        {# Messages Flash #}
+        <div class="messages mb-4">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {% if label == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elseif label == 'error' or label == 'danger' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elseif label == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elseif label == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #f9f9f9, #e3e3e3);">
+                        <!-- Header: Job Offer Title -->
+                        <div class="text-white d-flex align-items-center py-5 px-4" style="background: #007bff;">
+                            <i class="fas fa-briefcase me-3" style="font-size: 80px;"></i>
+                            <div>
+                                <h1 class="mb-1">{{ emploi.titre }}</h1>
+                                <p class="mb-0"><i class="fas fa-calendar-alt me-1"></i> Publié le {{ emploi.datePublication|date('d/m/Y H:i') }}</p>
+                            </div>
+                        </div>
+
+                        <div class="p-5">
+                            <div class="row">
+                                <!-- Left Column: Job Info -->
+                                <div class="col-md-4">
+                                    <div class="rounded-3 p-4 mb-4" style="background: rgba(255, 255, 255, 0.6);">
+                                        <h4 class="text-primary"><i class="fas fa-map-marker-alt me-2"></i> Lieu</h4>
+                                        <p class="fs-5 text-dark">{{ emploi.lieu }}</p>
+                                    </div>
+
+                                    <div class="rounded-3 p-4 mb-4" style="background: rgba(255, 255, 255, 0.6);">
+                                        <h4 class="text-primary"><i class="fas fa-coins me-2"></i> Budget</h4>
+                                        <p class="fs-5 text-dark">{{ emploi.budget }} DT</p>
+                                    </div>
+
+                                    <div class="rounded-3 p-4" style="background: rgba(255, 255, 255, 0.6);">
+                                        <h4 class="text-primary"><i class="fas fa-tag me-2"></i> Statut</h4>
+                                        <p>
+                                            <span class="badge badge-{{ emploi.statut == 'Ouvert' ? 'success' : 'secondary' }} p-2">
+                                                {{ emploi.statut }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Job Details -->
+                                <div class="col-md-8">
+                                    <div class="rounded-3 p-4 mb-4" style="background: rgba(255, 255, 255, 0.6);">
+                                        <h4 class="text-primary"><i class="fas fa-info-circle me-2"></i> Description</h4>
+                                        <p class="fs-5 text-muted">{{ emploi.description }}</p>
+                                    </div>
+
+                                    <div class="rounded-3 p-4" style="background: rgba(255, 255, 255, 0.6);">
+                                        <h4 class="text-primary"><i class="fas fa-tools me-2"></i> Compétences Requises</h4>
+                                        <p class="fs-5 text-muted">{{ emploi.competencesRequises }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer: Return Button -->
+                        <div class="text-center py-4" style="background: rgba(0, 0, 0, 0.05);">
+                            <a href="{{ path('backoffice_emploi') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i> Retour à la liste
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <h1>Messages</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="list-group">
+                    {% for user in users %}
+                        {% if user != app.user %}
+                            <a href="{{ path('messages_chat', {'id': user.id}) }}" 
+                               class="list-group-item list-group-item-action">
+                                {{ user.nom }} {{ user.prenom }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

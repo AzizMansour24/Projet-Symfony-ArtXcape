@@ -1,0 +1,1154 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+
+<!--==============================
+    Product Lightbox
+    ==============================-->
+            
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+        <!--==============================
+        Breadcumb
+        ============================== -->
+        <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+            <!-- bg animated image/ --> 
+            <div class="container">
+                <div class="breadcumb-content">
+                    <h1 class="breadcumb-title">Nos Galeries</h1>
+                </div>
+                <ul class="breadcumb-menu">
+                    <li><a href="#">Exploration</a></li>
+                    <li class="active">Achat</li>
+                </ul>                
+            </div>
+        </div>
+
+        <!--==============================
+        Product Area  
+        ==============================-->
+        <div class="product-area-1 space overflow-hidden">          
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-9 col-lg-8">
+                        <div class="shop-sort-bar">
+                            <div class="row justify-content-between align-items-center">
+                                <div class="col-md-auto">
+                                    <form class="woocommerce-ordering" method="get">
+                                        <select name="sort" class="single-select orderby" onchange="this.form.submit()">
+                                            <option value="date" {% if app.request.get('sort') == 'date' or app.request.get('sort') is null %}selected="selected"{% endif %}>Plus Récents</option>
+                                            <option value="likes" {% if app.request.get('sort') == 'likes' %}selected="selected"{% endif %}>Plus Pertinents</option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-4 justify-content-center">
+                         {% for article in liste %}
+                         {% set showArticle = not app.user or (app.user and article.galerie.user.id != app.user.id) %}
+                         {% if showArticle %}
+                            <div class="col-xl-4 col-lg-6 col-md-6">
+                                <div class="product-card h-100" style="border: 2px solid #e5e5e5; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                                    <div class="product-img">
+                                        <span class="tag">{{ article.categorie }}</span>
+                                        {% if date(article.datePub).diff(date()).days < 2 %}
+                                            <span class="new-badge">Nouveau</span>
+                                        {% endif %}
+                                        {% if article.nbrarticle == 0 %}
+                                            <span class="tag2 out-of-stock-badge">
+                                                <i class="fas fa-exclamation-circle"></i>
+                                                Rupture de stock
+                                            </span>
+                                        {% endif %}
+                                        <img src="{{ asset('uploads/images/' ~ article.contenu) }}" 
+                                             alt="Product Image"
+                                             class="w-100 h-auto object-fit-cover {% if article.nbrarticle == 0 %}out-of-stock-img{% endif %}" 
+                                             style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                                        <div class="actions">
+                                            {% if app.user %}
+                                                <a href="#" 
+                                                   class="icon-btn like-button" 
+                                                   data-article-id="{{ article.id }}"
+                                                   data-likes="{{ article.nbrlikes }}"
+                                                   data-liked="{{ is_liked(article, app.user) ? 'true' : 'false' }}">
+                                                    <i class="fa{{ is_liked(article, app.user) ? 's' : 'r' }} fa-heart"></i>
+                                                    <span class="likes-count">{{ article.nbrlikes }}</span>
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ path('app_login') }}" class="icon-btn">
+                                                    <i class="far fa-heart"></i>
+                                                    <span class="likes-count">{{ article.nbrlikes }}</span>
+                                                </a>
+                                            {% endif %}
+                                            <a href="#QuickView-{{ article.id }}" class="icon-btn popup-content"><i class="far fa-eye"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="product-content d-flex flex-column justify-content-between p-3">
+                                        <div>
+                                            <span class="price">{{ article.prix|number_format(2, ',', ' ') }} Dt</span>
+                                            <h3 class="product-title"><a href="shop-details.html">{{ article.titre }}</a></h3>
+                                            <p class="short-description">{{ article.description|striptags|slice(0, 100) }}...</p>
+                                        </div>
+                                        <span class="date mt-2">{{ article.datePub|date('d M Y') }}</span>
+                                    </div>
+                                </div>
+                            </div> 
+                            <!-- PARTIE QUICK CHECK --> 
+                                        <div id="QuickView-{{ article.id }}" class="white-popup mfp-hide">
+                            <div class="container bg-white quick-view-container">
+                                <div class="row gx-50">
+                                    <div class="col-lg-6">
+                                        <div class="product-big-img">
+                                            <div class="img-wrapper">
+                                                <img src="{{ asset('uploads/images/' ~ article.contenu) }}" 
+                                                     alt="Product Image"
+                                                     class="product-image">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 align-self-center">
+                                        <div class="product-about">
+                                            <div class="category-tag">{{ article.categorie }}</div>
+                                            <h2 class="product-title">{{ article.titre }}</h2>
+                                            <p class="price">{{ article.prix }} <span class="currency">Dt</span></p>
+                                            <!--
+                                            <div class="product-rating">
+                                                <div class="rating-stars">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                </div>
+                                            </div>
+                                            -->
+                                            <div class="product-description">
+                                                <p>{{ article.description }}</p>
+                                            </div>
+
+                                            <div class="info-list">
+                                                <div class="info-item">
+                                                    <i class="far fa-calendar-alt"></i>
+                                                    <span>Publié le {{ article.datePub|date('d M Y') }}</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="far fa-heart"></i>
+                                                    <span>{{ article.nbrlikes }} likes</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="far fa-user"></i>
+                                                    <span>Artiste: <a href="{{ path('artiste_profile', {'id': article.galerie.user.id}) }}" 
+                                                                     class="artist-link">{{ article.galerie.user.nom }} {{ article.galerie.user.prenom }}</a></span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <i class="fas fa-phone"></i>
+                                                    <span>Contact: {{ article.galerie.user.numtlf ?? 'Non renseigné' }}</span>
+                                                </div>
+                                            </div>
+
+                                            {% if article.nbrarticle > 0 %}
+                                                <div class="actions">
+                                                    <div class="quantity-control">
+                                                        <div class="quantity-nav">
+                                                            <button type="button" 
+                                                                    class="quantity-button quantity-down" 
+                                                                    aria-label="Diminuer la quantité"></button>
+                                                            <input type="number" 
+                                                                   class="quantity-input" 
+                                                                   value="1" 
+                                                                   min="1" 
+                                                                   max="{{ article.nbrarticle }}" 
+                                                                   readonly>
+                                                            <button type="button" 
+                                                                    class="quantity-button quantity-up" 
+                                                                    data-max="{{ article.nbrarticle }}"
+                                                                    aria-label="Augmenter la quantité"></button>
+                                                        </div>
+                                                    </div>
+                                                    <a href="{{ path('article_payment', {'id': article.id}) }}" class="btn btn-primary">
+                                                        Acheter
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <div class="out-of-stock-container">
+                                                    <div class="out-of-stock-message">
+                                                        <div class="out-of-stock-icon">
+                                                            <i class="fas fa-store-slash"></i>
+                                                        </div>
+                                                        <div class="out-of-stock-content">
+                                                            <h4>Article non disponible</h4>
+                                                            <p>Cet article n'est malheureusement plus en stock pour le moment.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button title="Fermer" type="button" class="mfp-close custom-close">×</button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                                
+                                             
+                        </div>
+                        {# Ajout de la pagination #}
+                        <div class="pagination-area text-center">
+                            {% if pages > 1 %}
+                                <div class="pagination-container">
+                                    {% if page > 1 %}
+                                        <a href="{{ path(app.request.get('_route') == 'cat_article' 
+                                            ? 'cat_article' 
+                                            : 'app_gallerie', 
+                                            app.request.get('_route') == 'cat_article' 
+                                            ? {'cat': app.request.get('cat'), 'page': page - 1}
+                                            : {'page': page - 1}) }}" 
+                                           class="pagination-btn">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% for i in 1..pages %}
+                                        <a href="{{ path(app.request.get('_route') == 'cat_article' 
+                                            ? 'cat_article' 
+                                            : 'app_gallerie',
+                                            app.request.get('_route') == 'cat_article' 
+                                            ? {'cat': app.request.get('cat'), 'page': i}
+                                            : {'page': i}) }}" 
+                                           class="pagination-btn {% if i == page %}active{% endif %}">
+                                            {{ i }}
+                                        </a>
+                                    {% endfor %}
+
+                                    {% if page < pages %}
+                                        <a href="{{ path(app.request.get('_route') == 'cat_article' 
+                                            ? 'cat_article' 
+                                            : 'app_gallerie',
+                                            app.request.get('_route') == 'cat_article' 
+                                            ? {'cat': app.request.get('cat'), 'page': page + 1}
+                                            : {'page': page + 1}) }}" 
+                                           class="pagination-btn">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-4 sidebar-widget-area">
+                        <aside class="sidebar-sticky-area sidebar-area sidebar-shop">
+                            <div class="widget widget_categories">
+                                <h3 class="widget_title">Categories</h3>
+                                <ul>
+                                    <li>
+                                        <a href="{{ path('app_gallerie') }}">Tout</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'Peinture', 'page': 1 }) }}">Peinture</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'Sculpture', 'page': 1 }) }}">Sculpture</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'Photographie', 'page': 1 }) }}">Photographie</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'DessinEtIllustration', 'page': 1 }) }}">DessinEtIllustration</a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'ArtNumerique', 'page': 1 }) }}">ArtNumerique</a>
+                                    </li>  
+                                    <li>
+                                        <a href="{{ path('cat_article', { 'cat': 'Architecture', 'page': 1 }) }}">Architecture</a>
+                                    </li>                               
+                                </ul>
+                            </div>
+    
+                            <div class="widget widget_price_filter">
+                                <h4 class="widget_title">Filtrer par prix</h4>
+                                <div class="price_slider_wrapper">
+                                    <div class="price-range">
+                                        <div class="price-input">
+                                            <input type="number" id="min-price" value="0">
+                                            <input type="number" id="max-price" value="1000">
+                                        </div>
+                                        <div id="price-slider"></div>
+                                        <div class="price-output">
+                                            <span>Prix: </span>
+                                            <span id="price-min">0</span>
+                                            <span> - </span>
+                                            <span id="price-max">1000</span>
+                                            <span> Dt</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <button id="apply-price-filter" class="btn custom-btn-apply mt-4">
+                                                <i class="fas fa-filter me-2"></i>Appliquer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css">
+
+<script>
+document.querySelectorAll('.like-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const articleId = this.dataset.articleId;
+        
+        fetch(`/article/${articleId}/like`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.code === 'SUCCESS') {
+                const icon = this.querySelector('i');
+                const likesCount = this.querySelector('.likes-count');
+                
+                icon.classList.toggle('far');
+                icon.classList.toggle('fas');
+                likesCount.textContent = data.likes;
+            }
+        });
+    });
+});
+
+// Gestionnaire de quantité
+document.querySelectorAll('.quantity-control').forEach(function(control) {
+    const input = control.querySelector('.quantity-input');
+    const upButton = control.querySelector('.quantity-up');
+    const downButton = control.querySelector('.quantity-down');
+    const max = parseInt(upButton.dataset.max);
+    const buyButton = control.closest('.actions').querySelector('.btn-primary');
+
+    // Mettre à jour le lien du bouton d'achat quand la quantité change
+    function updateBuyButtonHref() {
+        const articleId = buyButton.getAttribute('href').split('/').pop().split('?')[0];
+        buyButton.href = `{{ path('article_payment', {'id': 'ARTICLE_ID'}) }}?quantity=${input.value}`
+            .replace('ARTICLE_ID', articleId);
+    }
+
+    upButton.addEventListener('click', function() {
+        const currentValue = parseInt(input.value);
+        if (currentValue < max) {
+            input.value = currentValue + 1;
+            updateBuyButtonHref();
+        }
+    });
+
+    downButton.addEventListener('click', function() {
+        const currentValue = parseInt(input.value);
+        if (currentValue > 1) {
+            input.value = currentValue - 1;
+            updateBuyButtonHref();
+        }
+    });
+
+    // Initialiser le lien avec la quantité par défaut
+    updateBuyButtonHref();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.getElementById('price-slider');
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+    const priceMin = document.getElementById('price-min');
+    const priceMax = document.getElementById('price-max');
+
+    // Initialiser le slider
+    noUiSlider.create(slider, {
+        start: [0, 1000],
+        connect: true,
+        range: {
+            'min': 0,
+            'max': 1000
+        }
+    });
+
+    // Mettre à jour les inputs et l'affichage
+    slider.noUiSlider.on('update', function(values, handle) {
+        const value = Math.round(values[handle]);
+        if (handle === 0) {
+            minPriceInput.value = value;
+            priceMin.textContent = value;
+        } else {
+            maxPriceInput.value = value;
+            priceMax.textContent = value;
+        }
+    });
+
+    // Appliquer le filtre
+    document.getElementById('apply-price-filter').addEventListener('click', function() {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('min_price', minPriceInput.value);
+        currentUrl.searchParams.set('max_price', maxPriceInput.value);
+        window.location.href = currentUrl.toString();
+    });
+
+    // Synchroniser les inputs avec le slider
+    minPriceInput.addEventListener('change', function() {
+        slider.noUiSlider.set([this.value, null]);
+    });
+
+    maxPriceInput.addEventListener('change', function() {
+        slider.noUiSlider.set([null, this.value]);
+    });
+});
+</script>
+
+<style>
+.quantity-control {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border: 2px solid #e0e0e0;
+    border-radius: 50px;  /* Forme arrondie */
+    overflow: hidden;
+    height: 45px;
+    width: 160px;
+    margin-right: 15px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.quantity-control:hover {
+    border-color: #d0d0d0;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    border: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: transparent;
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    outline: none;
+}
+
+.quantity-nav {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 5px;
+}
+
+.quantity-button {
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: #f8f9fa;
+    cursor: pointer;
+    border-radius: 50%;  /* Boutons ronds */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #555;
+    transition: all 0.2s ease;
+    margin: 0 5px;
+}
+
+.quantity-button:hover {
+    background: #e9ecef;
+    color: #333;
+    transform: translateY(-1px);
+}
+
+.quantity-button:active {
+    transform: translateY(1px);
+}
+
+/* Effet de pulsation au hover */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.quantity-button:hover {
+    animation: pulse 0.3s ease-in-out;
+}
+
+/* Style spécifique pour les symboles + et - */
+.quantity-up::before {
+    content: '+';
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.quantity-down::before {
+    content: '−';  /* Utilisation du tiret moyen pour un meilleur rendu */
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+/* Désactiver les flèches par défaut du input number */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Style pour le focus */
+.quantity-control:focus-within {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74,144,226,0.2);
+}
+
+/* Style pour les boutons désactivés */
+.quantity-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+/* Style pour le conteneur des actions */
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Style pour le bouton Acheter */
+.actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 25px;
+    height: 45px;
+    border-radius: 50px;  /* Cohérence avec le contrôle de quantité */
+    transition: all 0.3s ease;
+}
+
+.actions .btn i {
+    font-size: 16px;
+}
+
+.out-of-stock-container {
+    margin: 25px 0;
+    padding: 3px;
+    background: linear-gradient(45deg, #ff6b6b, #ff8787, #ffa8a8);
+    border-radius: 15px;
+    animation: borderAnimation 2s ease infinite;
+}
+
+.out-of-stock-message {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.2);
+}
+
+.out-of-stock-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ff6b6b, #ff8787);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.out-of-stock-icon i {
+    font-size: 28px;
+    color: white;
+}
+
+.out-of-stock-content {
+    flex: 1;
+}
+
+.out-of-stock-content h4 {
+    margin: 0 0 8px 0;
+    color: #e03131;
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.out-of-stock-content p {
+    margin: 0;
+    color: #495057;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+@keyframes borderAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Animation d'entrée */
+@keyframes slideInWithFade {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.out-of-stock-container {
+    animation: slideInWithFade 0.5s ease-out forwards;
+    background-size: 200% 200%;
+}
+
+/* Effet hover */
+.out-of-stock-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.25);
+}
+
+/* Style pour griser le prix */
+.product-about:has(+ .out-of-stock-container) .price {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* Style pour le QuickView */
+.quick-view-container {
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.img-wrapper {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.product-image {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.img-wrapper:hover .product-image {
+    transform: scale(1.05);
+}
+
+.category-tag {
+    display: inline-block;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    color: white;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+    transition: all 0.3s ease;
+}
+
+.category-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+.product-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #1a1a1a;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #4a90e2;
+    margin-bottom: 20px;
+}
+
+.currency {
+    font-size: 20px;
+    font-weight: 500;
+    color: #666;
+}
+
+.rating-stars {
+    color: #ffd700;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.product-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: #555;
+}
+
+.info-item i {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f2f5;
+    border-radius: 50%;
+    color: #4a90e2;
+}
+
+.custom-close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-close:hover {
+    background: #f8f9fa;
+    color: #333;
+    transform: rotate(90deg);
+}
+
+/* Animation d'ouverture */
+.mfp-fade.mfp-bg {
+    opacity: 0;
+    transition: all 0.3s ease-out;
+}
+
+.mfp-fade.mfp-bg.mfp-ready {
+    opacity: 0.8;
+}
+
+.mfp-fade.mfp-wrap .mfp-content {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease-out;
+}
+
+.mfp-fade.mfp-wrap.mfp-ready .mfp-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Ajustement de l'espacement */
+.product-about {
+    padding: 20px 0;
+}
+
+.product-about .category-tag {
+    margin-bottom: 25px;
+}
+
+/* Animation d'entrée pour la catégorie */
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.category-tag {
+    animation: slideInFromLeft 0.5s ease-out forwards;
+}
+
+.out-of-stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.out-of-stock-badge i {
+    font-size: 1rem;
+}
+
+.out-of-stock-img {
+    opacity: 0.7;
+    filter: grayscale(50%);
+}
+
+.product-card:has(.out-of-stock-badge) {
+    position: relative;
+}
+
+.product-card:has(.out-of-stock-badge)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid #dc3545;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tag2 {
+    position: absolute;
+    top: 40px;  /* Ajusté pour être en dessous du tag de catégorie */
+    left: 10px;
+    z-index: 2;
+    background: linear-gradient(45deg, #dc3545, #ff4d5a);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tag2 i {
+    font-size: 0.9rem;
+}
+
+.short-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
+}
+
+.price-range {
+    padding: 20px;
+}
+
+.price-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.price-input input {
+    width: 100px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.price-output {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: 500;
+}
+
+#price-slider {
+    height: 5px;
+    background: #ddd;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+#price-slider .noUi-connect {
+    background: #4a90e2;
+}
+
+#price-slider .noUi-handle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #4a90e2;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+#price-slider .noUi-handle::before,
+#price-slider .noUi-handle::after {
+    display: none;
+}
+
+.custom-btn-apply {
+    background: linear-gradient(45deg, #ff8f00, #ff6f00);
+    color: white;
+    padding: 10px 30px;
+    border-radius: 25px;
+    border: none;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 143, 0, 0.2);
+}
+
+.custom-btn-apply:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 143, 0, 0.3);
+    background: linear-gradient(45deg, #ff6f00, #ff8f00);
+    color: white;
+}
+
+.custom-btn-apply i {
+    font-size: 0.9em;
+}
+
+#price-slider .noUi-connect {
+    background: linear-gradient(45deg, #ff8f00, #ff6f00);
+}
+
+#price-slider .noUi-handle {
+    border: 2px solid #ff8f00;
+}
+
+#price-slider .noUi-handle:hover {
+    box-shadow: 0 3px 8px rgba(255, 143, 0, 0.2);
+}
+
+/* QuickView Styles */
+.white-popup {
+    position: relative;
+    background: #FFF;
+    padding: 20px;
+    width: auto;
+    max-width: 1000px;
+    margin: 20px auto;
+    border-radius: 15px;
+}
+
+.quick-view-container {
+    padding: 30px;
+}
+
+.product-big-img {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.category-tag {
+    display: inline-block;
+    padding: 5px 15px;
+    background: rgba(255, 143, 0, 0.1);
+    color: #ff8f00;
+    border-radius: 20px;
+    margin-bottom: 15px;
+}
+
+.info-list {
+    margin: 20px 0;
+}
+
+.info-item {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.info-item i {
+    width: 20px;
+    color: #ff8f00;
+}
+
+.quantity-control {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.quantity-nav {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    overflow: hidden;
+}
+
+.quantity-button {
+    background: none;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quantity-button:hover {
+    background: #f5f5f5;
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-primary.buy-now {
+    background: linear-gradient(45deg, #ff8f00, #ff6f00);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 143, 0, 0.2);
+}
+
+.btn-primary.buy-now:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 143, 0, 0.3);
+    background: linear-gradient(45deg, #ff6f00, #ff8f00);
+}
+
+.product-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.price {
+    font-size: 22px;
+    color: #ff8f00;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.product-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.modal-close-btn:hover {
+    background: #ff8f00;
+    transform: rotate(90deg);
+}
+</style>
+{% endblock %}

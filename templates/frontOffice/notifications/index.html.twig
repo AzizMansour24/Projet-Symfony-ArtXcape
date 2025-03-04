@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .container {
+            margin-top: 40px;
+        }
+
+        h2 {
+            color: #2c3e50; /* Darker color for better contrast */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .list-group-item {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s;
+            padding: 20px; /* Increased padding */
+            font-size: 1.1rem; /* Increased font size */
+        }
+
+        .list-group-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-title {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .notification-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .notification-message {
+            color: #495057;
+        }
+
+        .alert {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Custom colors for different statuses */
+        .notification-success {
+            background-color: #d4edda; /* Light green */
+            border-color: #c3e6cb; /* Darker green */
+        }
+
+        .notification-warning {
+            background-color: #fff3cd; /* Light yellow */
+            border-color: #ffeeba; /* Darker yellow */
+        }
+
+        .notification-info {
+            background-color: #cce5ff; /* Light blue */
+            border-color: #b8daff; /* Darker blue */
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h2>Mes notifications</h2>
+    
+    <div class="list-group">
+        {% for notification in notifications %}
+            <div class="list-group-item notification-{{ notification.statut|lower }}">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="notification-title mb-1">
+                        Candidature {{ notification.statut }}
+                    </h5>
+                    <small class="notification-date">{{ notification.dateCandidature|date('d/m/Y H:i') }}</small>
+                </div>
+                <p class="notification-message mb-1">
+                    Votre candidature pour l'offre "{{ notification.emploi.titre }}" a été {{ notification.statut|lower }}.
+                </p>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Aucune nouvelle notification.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

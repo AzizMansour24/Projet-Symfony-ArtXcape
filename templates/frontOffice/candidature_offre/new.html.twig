@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .alert {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        
+        .alert-info {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        {# Messages Flash #}
+        <div class="messages mb-4">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {% if label == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elseif label == 'error' or label == 'danger' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elseif label == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elseif label == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <h1>Postuler à l'offre : {{ emploi.titre }}</h1>
+        {# Reste du contenu... #}
+    </div>
+{% endblock %} 

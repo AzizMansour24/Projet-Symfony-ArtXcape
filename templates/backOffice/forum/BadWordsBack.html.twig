@@ -1,0 +1,135 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <br><br><br><br><br>
+    <div class="row mb-4">
+        <div class="col-12"> 
+            <h1>Gestion des Bad Words</h1>
+        </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInput5" class="form-control" placeholder="Rechercher un bad word...">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addBadWordModal">
+                Ajouter un Bad Word
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="badWordsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mot</th>
+                                    <th>Remplacement</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for badWord in badWords %}
+                                    <tr>
+                                        <td>{{ badWord.id }}</td>
+                                        <td>{{ badWord.word }}</td>
+                                        <td>{{ badWord.replacement }}</td>
+                                        <td>
+                                            <form action="{{ path('badword_delete', {id: badWord.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce bad word ?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ badWord.id) }}">
+                                                <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">Aucun bad word trouvé.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addBadWordModal" tabindex="-1" role="dialog" aria-labelledby="addBadWordModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addBadWordModalLabel">Ajouter un Bad Word</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(badWordForm) }}
+                    {{ form_widget(badWordForm) }}
+                    <button type="submit" class="btn btn-success">Soumettre</button>
+                    {{ form_end(badWordForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .search-box {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    #searchInput5 {
+        padding-left: 35px;
+    }
+
+    .card {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: none;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+</style>
+
+<!-- Script de recherche -->
+<script>
+    document.getElementById('searchInput5').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#badWordsTable tbody tr');
+
+        rows.forEach(row => {
+            const cells = row.getElementsByTagName('td');
+            const rowText = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+            row.style.display = rowText.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
+
+{% endblock %}

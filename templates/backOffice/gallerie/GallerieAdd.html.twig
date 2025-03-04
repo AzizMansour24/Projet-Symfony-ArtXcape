@@ -1,0 +1,46 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="card-body">
+    <div>
+        <h4 class="card-title"></h4>
+        <br><br><br>
+        <h1>{{ titre }} une Galerie</h1>
+        <p class="card-description"></p>
+
+        {{ form_start(form) }}
+        
+        <!-- Nom de la Galerie -->
+        <div class="form-group">
+            {{ form_label(form.nom, 'Nom de la Galerie') }}
+            {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Nom de la galerie'}}) }}
+            <small class="text-danger">{{ form_errors(form.nom) }}</small>
+        </div>
+
+        <!-- Date de Création -->
+        <div class="form-group">
+            {{ form_label(form.datecreation, 'Date de Création') }}
+            {{ form_widget(form.datecreation, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.datecreation) }}</small>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+            {{ form_label(form.description, 'Description') }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+            <small class="text-danger">{{ form_errors(form.description) }}</small>
+        </div>
+
+        <!-- Utilisateur -->
+        <div class="form-group">
+            {{ form_label(form.user, 'Utilisateur') }}
+            {{ form_widget(form.user, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.user) }}</small>
+        </div>
+
+        <button type="submit" class="btn btn-inverse-primary btn-fw">{{ titre }}</button>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

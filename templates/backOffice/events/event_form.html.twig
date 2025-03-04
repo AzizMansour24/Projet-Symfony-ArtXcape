@@ -1,0 +1,857 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}{{ event.idevent ? 'Modifier l\'événement' : 'Créer un événement' }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .event-form-container {
+            padding: 2rem;
+        }
+
+        .card {
+            background: #191c24;
+            border: 1px solid #2c2e33;
+        }
+
+        .form-section {
+            background: #191c24;
+            padding: 1.5rem;
+            border: 1px solid #2c2e33;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section-title {
+            color: #ffffff;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            border-bottom: 1px solid #2c2e33;
+            padding-bottom: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: #ffffff;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            background-color: #2A3038;
+            border: 1px solid #2c2e33;
+            color: #ffffff;
+            border-radius: 0.25rem;
+            padding: 0.75rem 1.125rem;
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus {
+            background-color: #2A3038;
+            border-color: #0090e7;
+            color: #ffffff;
+            box-shadow: none;
+        }
+
+        .btn-submit {
+            background: #0090e7;
+            color: #ffffff;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            font-size: 0.875rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: auto;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background: #0078c1;
+            box-shadow: 0 0 15px rgba(0, 144, 231, 0.3);
+        }
+
+        .invalid-feedback {
+            color: #fc424a;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .image-preview {
+            max-width: 200px;
+            margin-top: 1rem;
+            border: 1px solid #2c2e33;
+            border-radius: 0.25rem;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: auto;
+        }
+
+        .text-muted {
+            color: #6c7293 !important;
+            font-size: 0.75rem;
+        }
+
+        /* Custom styling for date and time inputs */
+        input[type="date"],
+        input[type="time"] {
+            background-color: #2A3038;
+            color: #ffffff;
+        }
+
+        /* Row spacing */
+        .row {
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+
+        .row > div {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        /* Card header styling */
+        .card-header {
+            background: #191c24;
+            border-bottom: 1px solid #2c2e33;
+            padding: 1.5rem;
+        }
+
+        .page-title {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .event-form-container {
+                padding: 1rem;
+            }
+
+            .form-section {
+                padding: 1rem;
+            }
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
+            background-color: #2A3038 !important;
+        }
+
+        .is-valid {
+            border-color: #198754 !important;
+            background-color: #2A3038 !important;
+        }
+
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="event-form-container">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h1 class="page-title">
+                        {% if event.idevent %}
+                            <i class="mdi mdi-pencil-box"></i> Modifier l'événement
+                        {% else %}
+                            <i class="mdi mdi-plus-box"></i> Créer un nouvel événement
+                        {% endif %}
+                    </h1>
+                    <div>
+                        <button type="button" class="btn btn-info mr-2" data-toggle="modal" data-target="#urlExtractorModal">
+                            <i class="mdi mdi-link"></i> Extract from URL
+                        </button>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#aiGeneratorModal">
+                            <i class="mdi mdi-robot"></i> AI Generator
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                        
+                        {# Informations générales #}
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <i class="mdi mdi-information"></i> Informations générales
+                            </h3>
+                            
+                            <div class="form-group">
+                                {{ form_label(form.titre, 'Titre de l\'événement', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.titre, {
+                                    'attr': {
+                                        'class': 'form-control',
+                                        'minlength': 3,
+                                        'maxlength': 255,
+                                        'required': true
+                                    }
+                                }) }}
+                                {{ form_errors(form.titre) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.description, {
+                                    'attr': {
+                                        'class': 'form-control',
+                                        'minlength': 10,
+                                        'required': true
+                                    }
+                                }) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.eventMission, 'Mission de l\'événement', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.eventMission, {
+                                    'attr': {
+                                        'class': 'form-control',
+                                        'minlength': 10
+                                    }
+                                }) }}
+                                {{ form_errors(form.eventMission) }}
+                            </div>
+                        </div>
+
+                        {# Date et lieu #}
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <i class="mdi mdi-calendar-clock"></i> Date et lieu
+                            </h3>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.dateEvenement, 'Date', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.dateEvenement, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'required': true,
+                                                'min': "now"|date('Y-m-d')
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.dateEvenement) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.timestart, 'Heure de début', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.timestart, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'required': true
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.timestart) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.lieu, 'Lieu', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.lieu, {
+                                    'attr': {
+                                        'class': 'form-control',
+                                        'required': true,
+                                        'minlength': 3,
+                                        'maxlength': 255
+                                    }
+                                }) }}
+                                {{ form_errors(form.lieu) }}
+                            </div>
+                        </div>
+
+                        {# Billets et tarifs #}
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <i class="mdi mdi-ticket"></i> Billets et tarifs
+                            </h3>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        {{ form_label(form.nombreBillets, 'Nombre de billets', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.nombreBillets, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'required': true,
+                                                'min': 1,
+                                                'max': 9999,
+                                                'type': 'number'
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.nombreBillets) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        {{ form_label(form.seatprice, 'Prix du billet', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.seatprice, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'required': true,
+                                                'min': 0.01,
+                                                'max': 9999.99,
+                                                'step': '0.01',
+                                                'type': 'number'
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.seatprice) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        {{ form_label(form.donation_objective, 'Objectif de don', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.donation_objective, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'min': 0,
+                                                'max': 999999.99,
+                                                'step': '0.01',
+                                                'type': 'number'
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.donation_objective) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Image #}
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <i class="mdi mdi-image"></i> Image de l'événement
+                            </h3>
+                            
+                            <div class="form-group">
+                                {{ form_label(form.image, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                                <div class="d-flex align-items-center mb-3">
+                                    {{ form_widget(form.image, {'attr': {'class': 'form-control mr-2', 'novalidate': 'novalidate'}}) }}
+                                    <button type="button" class="btn btn-info" id="generateImageBtn">
+                                        <i class="mdi mdi-image-plus"></i> Generate Image
+                                    </button>
+                                </div>
+                                {{ form_errors(form.image) }}
+                                <div id="generatedImagePreview" class="image-preview mt-3" style="display: none;">
+                                    <img src="" alt="Generated image">
+                                    <button type="button" class="btn btn-success btn-sm mt-2" id="useGeneratedImage">
+                                        Use This Image
+                                    </button>
+                                </div>
+                                {% if event.image is defined and event.image %}
+                                    <div class="image-preview mt-3">
+                                        <img src="{{ asset('uploads/images/' ~ event.image) }}" alt="Aperçu de l'image">
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">Formats acceptés : JPG, PNG. Taille maximale : 5MB</small>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-submit">
+                                <i class="mdi mdi-content-save"></i>
+                                {{ event.idevent ? 'Mettre à jour l\'événement' : 'Créer l\'événement' }}
+                            </button>
+                        </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiGeneratorModal" tabindex="-1" role="dialog" aria-labelledby="aiGeneratorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiGeneratorModalLabel">AI Event Generator</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="aiPrompt">Describe your event:</label>
+                    <textarea class="form-control" id="aiPrompt" rows="3" placeholder="Example: Create a charity gala event for children's education"></textarea>
+                </div>
+                <div id="generationStatus" class="alert" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generateButton">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="urlExtractorModal" tabindex="-1" role="dialog" aria-labelledby="urlExtractorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="urlExtractorModalLabel">Extract Event from URL</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="eventUrl">Event URL:</label>
+                    <input type="url" class="form-control" id="eventUrl" placeholder="https://example.com/event">
+                </div>
+                <div id="urlExtractionStatus" class="alert" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="extractButton">Extract</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="imageGeneratorModal" tabindex="-1" role="dialog" aria-labelledby="imageGeneratorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageGeneratorModalLabel">Generate Event Image</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="imagePrompt">Image Description:</label>
+                    <textarea class="form-control" id="imagePrompt" rows="3" placeholder="Describe the image you want to generate"></textarea>
+                </div>
+                <div id="imageGenerationStatus" class="alert" style="display: none;"></div>
+                <div id="modalImagePreview" class="text-center" style="display: none;">
+                    <img src="" alt="Generated preview" style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="startImageGeneration">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Image preview functionality
+            const imageInput = document.querySelector('input[type="file"]');
+            const previewContainer = document.querySelector('.image-preview');
+
+            if (imageInput) {
+                imageInput.addEventListener('change', function(e) {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            if (!previewContainer) {
+                                const newPreview = document.createElement('div');
+                                newPreview.className = 'image-preview mt-3';
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.alt = 'Image preview';
+                                newPreview.appendChild(img);
+                                imageInput.parentNode.appendChild(newPreview);
+                            } else {
+                                const img = previewContainer.querySelector('img') || document.createElement('img');
+                                img.src = e.target.result;
+                                img.alt = 'Image preview';
+                                if (!previewContainer.querySelector('img')) {
+                                    previewContainer.appendChild(img);
+                                }
+                            }
+                        }
+                        
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+
+            // AI Generator functionality
+            const generateButton = document.getElementById('generateButton');
+            const aiPrompt = document.getElementById('aiPrompt');
+            const generationStatus = document.getElementById('generationStatus');
+
+            generateButton.addEventListener('click', async function() {
+                const prompt = aiPrompt.value;
+                if (!prompt) {
+                    alert('Please enter a description for your event');
+                    return;
+                }
+
+                // Show loading state
+                generateButton.disabled = true;
+                generationStatus.className = 'alert alert-info';
+                generationStatus.style.display = 'block';
+                generationStatus.textContent = 'Generating event details...';
+
+                try {
+                    const response = await fetch('/generate-event', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ prompt: prompt })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate event details');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success && data.event) {
+                        // Fill in the form fields with the generated data
+                        document.querySelector('[name="eventaddmodify[titre]"]').value = data.event.titre;
+                        document.querySelector('[name="eventaddmodify[description]"]').value = data.event.description;
+                        document.querySelector('[name="eventaddmodify[eventMission]"]').value = data.event.eventMission;
+                        document.querySelector('[name="eventaddmodify[lieu]"]').value = data.event.lieu;
+                        document.querySelector('[name="eventaddmodify[nombreBillets]"]').value = data.event.nombreBillets;
+                        document.querySelector('[name="eventaddmodify[seatprice]"]').value = data.event.seatprice;
+                        document.querySelector('[name="eventaddmodify[donation_objective]"]').value = data.event.donation_objective;
+
+                        generationStatus.className = 'alert alert-success';
+                        generationStatus.textContent = 'Event details generated successfully!';
+
+                        // Close modal after a short delay
+                        setTimeout(() => {
+                            $('#aiGeneratorModal').modal('hide');
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Failed to generate event details');
+                    }
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    generationStatus.className = 'alert alert-danger';
+                    generationStatus.textContent = error.message || 'An error occurred while generating event details';
+                } finally {
+                    generateButton.disabled = false;
+                }
+            });
+
+            // URL Extractor functionality
+            const extractButton = document.getElementById('extractButton');
+            const urlInput = document.getElementById('eventUrl');
+            const urlStatusDiv = document.getElementById('urlExtractionStatus');
+
+            extractButton.addEventListener('click', async function() {
+                const url = urlInput.value;
+                if (!url) {
+                    alert('Please enter a valid URL');
+                    return;
+                }
+
+                // Show loading state
+                extractButton.disabled = true;
+                urlStatusDiv.className = 'alert alert-info';
+                urlStatusDiv.style.display = 'block';
+                urlStatusDiv.textContent = 'Extracting event details...';
+
+                try {
+                    const response = await fetch('/extract-event-from-url', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ url: url })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to extract event details');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Fill in the form fields
+                        document.querySelector('[name="eventaddmodify[titre]"]').value = data.event.titre;
+                        document.querySelector('[name="eventaddmodify[description]"]').value = data.event.description;
+                        document.querySelector('[name="eventaddmodify[eventMission]"]').value = data.event.eventMission;
+                        document.querySelector('[name="eventaddmodify[lieu]"]').value = data.event.lieu;
+                        document.querySelector('[name="eventaddmodify[nombreBillets]"]').value = data.event.nombreBillets;
+                        document.querySelector('[name="eventaddmodify[seatprice]"]').value = data.event.seatprice;
+                        document.querySelector('[name="eventaddmodify[donation_objective]"]').value = data.event.donation_objective;
+
+                        urlStatusDiv.className = 'alert alert-success';
+                        urlStatusDiv.textContent = 'Event details extracted successfully!';
+                        
+                        // Close modal after a short delay
+                        setTimeout(() => {
+                            $('#urlExtractorModal').modal('hide');
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Extraction failed');
+                    }
+                } catch (error) {
+                    urlStatusDiv.className = 'alert alert-danger';
+                    urlStatusDiv.textContent = error.message || 'An error occurred while extracting event details';
+                } finally {
+                    extractButton.disabled = false;
+                }
+            });
+
+            // Real-time form validation
+            const form = document.querySelector('form[name="eventaddmodify"]');
+            if (!form) return;
+
+            function validateForm() {
+                let isValid = true;
+                const fields = {
+                    titre: {
+                        required: true,
+                        minLength: 3,
+                        maxLength: 255
+                    },
+                    description: {
+                        required: true,
+                        minLength: 10
+                    },
+                    eventMission: {
+                        minLength: 10
+                    },
+                    dateEvenement: {
+                        required: true
+                    },
+                    timestart: {
+                        required: true
+                    },
+                    lieu: {
+                        required: true,
+                        minLength: 3,
+                        maxLength: 255
+                    },
+                    nombreBillets: {
+                        required: true,
+                        min: 1,
+                        max: 9999
+                    },
+                    seatprice: {
+                        required: true,
+                        min: 0.01,
+                        max: 9999.99
+                    },
+                    donation_objective: {
+                        min: 0,
+                        max: 999999.99
+                    }
+                };
+
+                // Clear all previous errors
+                document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.is-valid').forEach(el => el.classList.remove('is-valid'));
+
+                // Validate each field
+                Object.entries(fields).forEach(([fieldName, rules]) => {
+                    const input = form.querySelector(`[name="eventaddmodify[${fieldName}]"]`);
+                    if (!input) return;
+
+                    let fieldIsValid = true;
+                    let errorMessage = '';
+
+                    // Required validation
+                    if (rules.required && !input.value.trim()) {
+                        fieldIsValid = false;
+                        errorMessage = 'Ce champ est obligatoire';
+                    }
+
+                    // MinLength validation
+                    if (fieldIsValid && rules.minLength && input.value.trim().length < rules.minLength) {
+                        fieldIsValid = false;
+                        errorMessage = `Ce champ doit contenir au moins ${rules.minLength} caractères`;
+                    }
+
+                    // MaxLength validation
+                    if (fieldIsValid && rules.maxLength && input.value.trim().length > rules.maxLength) {
+                        fieldIsValid = false;
+                        errorMessage = `Ce champ ne peut pas dépasser ${rules.maxLength} caractères`;
+                    }
+
+                    // Number validation
+                    if (fieldIsValid && (rules.min !== undefined || rules.max !== undefined)) {
+                        const value = parseFloat(input.value);
+                        if (rules.min !== undefined && value < rules.min) {
+                            fieldIsValid = false;
+                            errorMessage = `La valeur minimale est ${rules.min}`;
+                        }
+                        if (rules.max !== undefined && value > rules.max) {
+                            fieldIsValid = false;
+                            errorMessage = `La valeur maximale est ${rules.max}`;
+                        }
+                    }
+
+                    // Date validation
+                    if (fieldName === 'dateEvenement' && input.value) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const inputDate = new Date(input.value);
+                        if (inputDate < today) {
+                            fieldIsValid = false;
+                            errorMessage = 'La date doit être ultérieure à aujourd\'hui';
+                        }
+                    }
+
+                    // Update validation state
+                    if (!fieldIsValid) {
+                        isValid = false;
+                        input.classList.add('is-invalid');
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback';
+                        errorDiv.textContent = errorMessage;
+                        input.parentElement.appendChild(errorDiv);
+                    } else {
+                        input.classList.add('is-valid');
+                    }
+                });
+
+                return isValid;
+            }
+
+            // Form submission handler
+            form.addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Scroll to first error
+                    const firstError = form.querySelector('.is-invalid');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+
+            // Real-time validation
+            form.querySelectorAll('input, textarea').forEach(input => {
+                if (input.type !== 'file') {
+                    input.addEventListener('input', () => validateForm());
+                    input.addEventListener('blur', () => validateForm());
+                }
+            });
+
+            // Add this new code for image generation
+            const generateImageBtn = document.getElementById('generateImageBtn');
+            const imagePrompt = document.getElementById('imagePrompt');
+            const startImageGeneration = document.getElementById('startImageGeneration');
+            const imageGenerationStatus = document.getElementById('imageGenerationStatus');
+            const modalImagePreview = document.getElementById('modalImagePreview');
+            const generatedImagePreview = document.getElementById('generatedImagePreview');
+            const useGeneratedImage = document.getElementById('useGeneratedImage');
+
+            generateImageBtn.addEventListener('click', function() {
+                $('#imageGeneratorModal').modal('show');
+            });
+
+            startImageGeneration.addEventListener('click', async function() {
+                const prompt = imagePrompt.value;
+                if (!prompt) {
+                    alert('Please enter an image description');
+                    return;
+                }
+
+                // Show loading state
+                startImageGeneration.disabled = true;
+                imageGenerationStatus.className = 'alert alert-info';
+                imageGenerationStatus.style.display = 'block';
+                imageGenerationStatus.textContent = 'Generating image...';
+                modalImagePreview.style.display = 'none';
+
+                try {
+                    const response = await fetch('/generate-image', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ 
+                            prompt: prompt,
+                            api_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOGRiNzBiMjctNjA1MS00YzJjLWIzZGUtNDI0NGJiNzZkOTEyIiwidHlwZSI6ImFwaV90b2tlbiIsIm5hbWUiOiJ0YWhhIGhraXJpIiwiaXNfY3VzdG9tIjp0cnVlfQ.xN7kqBmMFrQTnOGykqkW-QVzPGgDjQESa8hWDayYxUU'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate image');
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success && data.imageUrl) {
+                        // Show the generated image in both modal and main form
+                        modalImagePreview.querySelector('img').src = data.imageUrl;
+                        modalImagePreview.style.display = 'block';
+                        generatedImagePreview.querySelector('img').src = data.imageUrl;
+                        generatedImagePreview.style.display = 'block';
+                        
+                        imageGenerationStatus.className = 'alert alert-success';
+                        imageGenerationStatus.textContent = 'Image generated successfully!';
+                    } else {
+                        throw new Error(data.message || 'Image generation failed');
+                    }
+                } catch (error) {
+                    imageGenerationStatus.className = 'alert alert-danger';
+                    imageGenerationStatus.textContent = error.message || 'An error occurred while generating the image';
+                } finally {
+                    startImageGeneration.disabled = false;
+                }
+            });
+
+            useGeneratedImage.addEventListener('click', async function() {
+                const generatedImageUrl = generatedImagePreview.querySelector('img').src;
+                
+                try {
+                    // Convert the generated image to a file input
+                    const response = await fetch(generatedImageUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'generated-event-image.png', { type: 'image/png' });
+                    
+                    // Create a FileList containing the file
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    // Set the file input's files
+                    const fileInput = document.querySelector('[name="eventaddmodify[image]"]');
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger change event to update preview
+                    const event = new Event('change');
+                    fileInput.dispatchEvent(event);
+                    
+                    // Close the modal
+                    $('#imageGeneratorModal').modal('hide');
+                } catch (error) {
+                    console.error('Error using generated image:', error);
+                    alert('Failed to use the generated image. Please try again.');
+                }
+            });
+        });
+    </script>
+{% endblock %}

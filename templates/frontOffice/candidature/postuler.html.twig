@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Postuler à une offre d'emploi{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Postuler à une offre d'emploi</h1>
+
+        <div class="card">
+            <div class="card-body"> 
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+
+                    {# Champ Compétences #}
+                    <div class="form-group mb-3">
+                        {{ form_label(form.competences) }}
+                        {{ form_widget(form.competences, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Décrivez vos compétences'}}) }}
+                        {{ form_errors(form.competences) }}
+                    </div>
+
+                    {# Champ Lettre de Motivation #}
+                    <div class="form-group mb-3">
+                        {{ form_label(form.lettreMotivation) }}
+                        {{ form_widget(form.lettreMotivation, {'attr': {'class': 'form-control', 'rows': 5, 'placeholder': 'Écrivez votre lettre de motivation'}}) }}
+                        {{ form_errors(form.lettreMotivation) }}
+                    </div>
+
+                    {# Champ CV #}
+                    <div class="form-group mb-3">
+                        {{ form_label(form.cvFile) }}
+                        {{ form_widget(form.cvFile, {'attr': {'class': 'form-control-file'}}) }}
+                        {{ form_errors(form.cvFile) }}
+                        <small class="form-text text-muted">Formats acceptés : PDF uniquement. Taille maximale : 24Mo</small>
+                    </div>
+
+                    {# Boutons de soumission #}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ path('app_emploi') }}" class="btn btn-outline-dark btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i> Envoyer ma candidature
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Payment - ArtVista</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/logo.png') }}">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            margin: 20px;
+        }
+
+        .payment {
+            flex: 2;
+            padding: 30px;
+            background: #fff;
+        }
+
+        .payment__header {
+            margin-bottom: 30px;
+        }
+
+        .payment__header h3 {
+            background: #2a5298;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .payment__card {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .payment__card-header {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+
+        .payment__input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.9);
+        }
+
+        .payment__input:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 0 2px #2a5298;
+        }
+
+        .payment__type {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+        }
+
+        .payment__submit {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #2a5298;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment__submit:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        .cart {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 30px;
+            border-left: 1px solid #eee;
+        }
+
+        .cart__header {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a5298;
+        }
+
+        .cart__item {
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #444;
+        }
+
+        .cart__item span {
+            font-size: 14px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 15px 0;
+        }
+
+        .-total {
+            color: #2a5298;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .loader h3 {
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .dots {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        @keyframes loading {
+            0%, 100% { background: #fff; transform: scale(1); }
+            50% { background: #2a5298; transform: scale(1.2); }
+        }
+
+        .loader div {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fff;
+            animation: loading 1.5s infinite;
+        }
+
+        .loader__2 { animation-delay: 0.2s; }
+        .loader__3 { animation-delay: 0.4s; }
+        .loader__4 { animation-delay: 0.6s; }
+        .loader__5 { animation-delay: 0.8s; }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .cart {
+                border-left: none;
+                border-top: 1px solid #eee;
+            }
+        }
+
+        /* Add Stripe Element styles */
+        .stripe-element {
+            background: rgba(255,255,255,0.9);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .stripe-element.focused {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 0 2px #2a5298;
+        }
+
+        #card-errors {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+    </style>
+
+    <!-- Add Stripe.js before closing head tag -->
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="payment">
+                <div class="payment__header">
+                    <h3><i class="fa fa-shield-alt"></i> Secure Payment</h3>
+                </div>
+                
+                <form id="paymentForm" action="{{ path('add_donation', {'idevent': event.idevent}) }}" method="POST">
+                    <input type="hidden" name="_token" value="{{ csrf_token('payment-form') }}">
+                    <input type="hidden" name="donorname" value="{{ donorname }}">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    <input type="hidden" name="montant" value="{{ amount }}">
+                    <input type="hidden" name="num_tlf" value="{{ phone }}">
+                    
+                    <div class="payment__card">
+                        <h4 class="payment__card-header">Credit Card Information</h4>
+                        <!-- Replace credit card inputs with Stripe Elements -->
+                        <div id="card-element" class="stripe-element"></div>
+                        <div id="card-errors" role="alert"></div>
+                        <input type="hidden" name="payment_method" value="credit_card">
+                        <i class="payment__type fab fa-cc-visa fa-2x"></i>
+                    </div>
+                    
+                    <p class="payment__text" style="margin: 20px 0; color: #666;">
+                        Amount to be charged: <strong style="color: #2a5298;">${{ amount }}</strong>
+                    </p>
+                    
+                    <button type="submit" class="payment__submit">
+                        <i class="fas fa-lock"></i> Complete Secure Payment
+                    </button>
+                </form>
+            </div>
+            
+            <div class="cart">
+                <h4 class="cart__header">Donation Summary</h4>
+                <div class="cart__item">
+                    <span>Event</span>
+                    <span>{{ event.titre }}</span>
+                </div>
+                
+                <div class="cart__item">
+                    <span>Donor Name</span>
+                    <span>{{ donorname }}</span>
+                </div>
+                
+                <div class="cart__item">
+                    <span>Email</span>
+                    <span>{{ email }}</span>
+                </div>
+                
+                <hr>
+                
+                <div class="cart__item">
+                    <span>Donation Amount</span>
+                    <span class="-total">${{ amount }}</span>
+                </div>
+
+                <div style="margin-top: 30px; text-align: center;">
+                    <i class="fas fa-shield-alt" style="color: #2a5298; font-size: 24px;"></i>
+                    <p style="color: #666; font-size: 12px; margin-top: 10px;">
+                        Your payment is secured with SSL encryption
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const stripe = Stripe('{{ stripe_public_key }}');
+            const elements = stripe.elements();
+            
+            // Create card element
+            const cardElement = elements.create('card', {
+                style: {
+                    base: {
+                        fontFamily: '"Poppins", sans-serif',
+                        fontSize: '14px',
+                        color: '#32325d',
+                        '::placeholder': {
+                            color: '#aab7c4'
+                        }
+                    },
+                    invalid: {
+                        color: '#dc3545',
+                        iconColor: '#dc3545'
+                    }
+                }
+            });
+
+            cardElement.mount('#card-element');
+
+            // Handle real-time validation errors
+            cardElement.on('change', function(event) {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+
+            // Handle form submission
+            $('#paymentForm').on('submit', async function(e) {
+                e.preventDefault();
+                
+                $('.payment__submit').html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+                $('.payment__submit').prop('disabled', true);
+                
+                try {
+                    // First, verify email
+                    const emailVerificationResponse = await fetch('/verify-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        },
+                        body: JSON.stringify({
+                            email: document.querySelector('input[name="email"]').value,
+                            donorname: document.querySelector('input[name="donorname"]').value,
+                            montant: document.querySelector('input[name="montant"]').value,
+                            num_tlf: document.querySelector('input[name="num_tlf"]').value
+                        })
+                    });
+
+                    if (!emailVerificationResponse.ok) {
+                        throw new Error('Email verification failed');
+                    }
+
+                    const emailVerificationData = await emailVerificationResponse.json();
+
+                    // If email verification successful, proceed with Stripe payment
+                    const {paymentMethod, error} = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement,
+                        billing_details: {
+                            name: document.querySelector('input[name="donorname"]').value,
+                            email: document.querySelector('input[name="email"]').value,
+                        }
+                    });
+
+                    if (error) {
+                        throw new Error(error.message);
+                    }
+
+                    // Store payment method ID in session
+                    const storePaymentResponse = await fetch('/store-payment-method', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        },
+                        body: JSON.stringify({
+                            payment_method_id: paymentMethod.id,
+                            idevent: '{{ event.idevent }}'
+                        })
+                    });
+
+                    const storePaymentData = await storePaymentResponse.json();
+
+                    if (!storePaymentResponse.ok) {
+                        throw new Error(storePaymentData.message || 'Failed to store payment information');
+                    }
+
+                    if (storePaymentData.status !== 'success') {
+                        throw new Error(storePaymentData.message || 'Failed to store payment information');
+                    }
+
+                    // Show verification message and redirect
+                    alert('Please check your email for verification code');
+                    window.location.href = '/verify-code?idevent={{ event.idevent }}';
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    const errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = error.message || 'An error occurred while processing your payment.';
+                    
+                    // Reset button state on error
+                    $('.payment__submit').html('<i class="fas fa-lock"></i> Complete Secure Payment');
+                    $('.payment__submit').prop('disabled', false);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

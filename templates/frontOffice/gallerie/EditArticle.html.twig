@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Modifier l'article</h1>
+            </div>
+            <ul class="breadcumb-menu">
+                <li><a href="{{ path('articles_galerie', {'id': article.galerie.id}) }}">Retour aux articles</a></li>
+            </ul>                
+        </div>
+    </div>
+ 
+    <div class="space-top space-extra-bottom">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-8 col-lg-10">
+                    <div class="card">
+                        <div class="card-body p-4 p-xl-5">
+                            {{ form_start(form, {'attr': {'class': 'article-form'}}) }}
+                                <div class="row">
+                                    <div class="col-12 mb-4">
+                                        {{ form_label(form.titre, 'Titre', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.titre) }}
+                                        {{ form_errors(form.titre) }}
+                                    </div>
+
+                                    <div class="col-12 mb-4">
+                                        {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.description) }}
+                                        {{ form_errors(form.description) }}
+                                    </div>
+
+                                    <div class="col-md-6 mb-4">
+                                        {{ form_label(form.prix, 'Prix', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.prix) }}
+                                        {{ form_errors(form.prix) }}
+                                    </div>
+                                
+                                    <div class="col-md-6 mb-4">
+                                        {{ form_label(form.categorie, 'Catégorie', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.categorie) }}
+                                        {{ form_errors(form.categorie) }}
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        {{ form_label(form.nbrarticle, 'nombre d articles', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.nbrarticle) }}
+                                        {{ form_errors(form.nbrarticle) }}
+                                    </div>
+
+                                    <div class="col-12 mb-4">
+                                        {{ form_label(form.contenu, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                                        {% if article.contenu %}
+                                            <div class="mb-2">
+                                                <img src="{{ asset('uploads/images/' ~ article.contenu) }}" alt="Image actuelle" class="img-thumbnail" style="max-height: 200px">
+                                            </div>
+                                        {% endif %}
+                                        {{ form_widget(form.contenu) }}
+                                        {{ form_errors(form.contenu) }}
+                                        <small class="form-text text-muted">Formats acceptés : JPG, PNG, GIF. Taille max : 5MB</small>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <button type="submit" class="btn">Enregistrer les modifications</button>
+                                        <a href="{{ path('articles_galerie', {'id': article.galerie.id}) }}" class="btn btn-secondary">Annuler</a>
+                                    </div>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .img-thumbnail {
+            border-radius: 10px;
+        }
+    </style>
+{% endblock %} 

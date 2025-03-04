@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Inscription | ArtXcape</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+		<!-- Styles CSS -->
+		<style>
+			/* Design global */
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+				background: linear-gradient(135deg, #2a2f4f, #cd7f32);
+				font-family: 'Poppins', sans-serif;
+				padding: 20px;
+			}
+
+			.container {
+				display: flex;
+				width: 1000px;
+				max-width: 100%;
+				background: #fff;
+				border-radius: 16px;
+				overflow: hidden;
+				box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+				transition: transform 0.3s ease;
+				position: relative;
+			}
+
+			.container:hover {
+				transform: translateY(-5px);
+			}
+
+			/* Section Gauche - Avatar + Image animée */
+			.left-section {
+				width: 40%;
+				position: relative;
+				background: url('https://source.unsplash.com/random/800x1200/?art,escape') center/cover;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				text-align: center;
+				padding: 40px 20px;
+				z-index: 2;
+			}
+
+			.left-section::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: linear-gradient(135deg, rgba(42, 47, 79, 0.85), rgba(205, 127, 50, 0.85));
+				z-index: -1;
+			}
+
+			.avatar-container {
+				width: 140px;
+				height: 140px;
+				background: rgba(255, 255, 255, 0.2);
+				border-radius: 50%;
+				padding: 5px;
+				margin-bottom: 20px;
+				box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+				animation: pulse 2s infinite;
+				position: relative;
+				z-index: 3;
+			}
+
+			@keyframes pulse {
+				0% {
+					box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+				}
+				70% {
+					box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+				}
+				100% {
+					box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+				}
+			}
+
+			.avatar-animation {
+				width: 100%;
+				height: 100%;
+				border-radius: 50%;
+				object-fit: cover;
+				border: 3px solid #fff;
+				display: block;
+			}
+
+			.left-section h2 {
+				color: #fff;
+				font-size: 28px;
+				margin-bottom: 10px;
+				font-weight: 600;
+				text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+				position: relative;
+				z-index: 3;
+			}
+
+			.left-section p {
+				color: #fff;
+				font-size: 16px;
+				margin-bottom: 25px;
+				max-width: 80%;
+				line-height: 1.5;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+				position: relative;
+				z-index: 3;
+			}
+
+			.btn-avatar {
+				background: #fff;
+				color: #2a2f4f;
+				padding: 15px 25px;
+				border-radius: 30px;
+				font-size: 15px;
+				font-weight: 600;
+				cursor: pointer;
+				text-decoration: none;
+				transition: 0.3s;
+				display: inline-block;
+				border: none;
+				box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+				position: relative;
+				overflow: hidden;
+				z-index: 3;
+			}
+
+			.btn-avatar::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 0%;
+				height: 100%;
+				background: #cd7f32;
+				transition: all 0.4s ease;
+				z-index: -1;
+				border-radius: 30px;
+			}
+
+			.btn-avatar:hover {
+				color: #fff;
+			}
+
+			.btn-avatar:hover::before {
+				width: 100%;
+			}
+
+			.btn-avatar i {
+				margin-right: 8px;
+			}
+
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(-20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* Section Droite - Formulaire */
+			.right-section {
+				width: 60%;
+				padding: 40px 50px;
+				background: #fff;
+				position: relative;
+				z-index: 1;
+			}
+
+			h3 {
+				font-size: 28px;
+				font-weight: 700;
+				color: #2a2f4f;
+				margin-bottom: 25px;
+				position: relative;
+				padding-bottom: 10px;
+			}
+
+			h3::after {
+				content: '';
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 50px;
+				height: 4px;
+				background: #cd7f32;
+				border-radius: 10px;
+			}
+
+			.form-group {
+				display: flex;
+				flex-direction: column;
+				margin-bottom: 20px;
+				position: relative;
+			}
+
+			.form-group label {
+				font-size: 15px;
+				color: #555;
+				font-weight: 500;
+				margin-bottom: 8px;
+			}
+
+			.form-group input {
+				width: 100%;
+				padding: 15px;
+				border: 2px solid #eee;
+				border-radius: 10px;
+				font-size: 15px;
+				transition: all 0.3s ease;
+				background: #f9f9f9;
+				color: #333;
+				font-family: 'Poppins', sans-serif;
+			}
+
+			.form-group input:focus {
+				border-color: #cd7f32;
+				outline: none;
+				box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+				background: #fff;
+			}
+
+			.form-group input::placeholder {
+				color: #aaa;
+				font-weight: 300;
+			}
+
+			.text-danger {
+				color: #e74c3c;
+				font-size: 13px;
+				margin-top: 5px;
+			}
+
+			/* Regroupement des champs Nom et Prénom */
+			.name-group {
+				display: flex;
+				gap: 20px;
+				margin-bottom: 20px;
+			}
+
+			.name-group .form-group {
+				width: 50%;
+				margin-bottom: 0;
+			}
+
+			/* Sélecteur de rôle stylisé */
+			.role-group {
+				display: flex;
+				justify-content: flex-start;
+				gap: 20px;
+				margin-top: 15px;
+			}
+
+			.role-option {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 150px;
+				height: 55px;
+				border-radius: 12px;
+				border: 2px solid #eee;
+				color: #666;
+				font-weight: 500;
+				cursor: pointer;
+				transition: all 0.3s;
+				font-size: 15px;
+				background: #f9f9f9;
+				text-align: center;
+				box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+			}
+
+			.role-option i {
+				margin-right: 10px;
+				font-size: 18px;
+			}
+
+			/* Rôle sélectionné */
+			.role-option.active {
+				background: #2a2f4f;
+				color: white;
+				border-color: #2a2f4f;
+				transform: translateY(-3px);
+				box-shadow: 0 6px 12px rgba(42, 47, 79, 0.2);
+			}
+
+			/* Animation au survol */
+			.role-option:hover {
+				border-color: #cd7f32;
+				color: #cd7f32;
+				transform: translateY(-2px);
+			}
+
+			/* Caché l'input radio */
+			.role-option input {
+				display: none;
+			}
+
+			/* Espacement entre les champs et les boutons */
+			.buttons {
+				display: flex;
+				justify-content: space-between;
+				margin-top: 40px;
+				position: relative;
+				z-index: 2;
+			}
+
+			.btn {
+				padding: 15px 30px;
+				border-radius: 12px;
+				font-size: 16px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: all 0.3s;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				width: 48%;
+				font-family: 'Poppins', sans-serif;
+				position: relative;
+				overflow: hidden;
+				z-index: 1;
+			}
+
+			.btn-cancel {
+				background: #f0f0f0;
+				color: #555;
+				border: none;
+			}
+
+			.btn-confirm {
+				background: #cd7f32;
+				color: white;
+				border: none;
+			}
+
+			.btn::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 0%;
+				height: 100%;
+				z-index: -1;
+				transition: all 0.4s ease;
+			}
+
+			.btn-cancel::before {
+				background: #e0e0e0;
+			}
+
+			.btn-confirm::before {
+				background: #2a2f4f;
+			}
+
+			.btn:hover::before {
+				width: 100%;
+			}
+
+			.btn-cancel:hover {
+				box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+			}
+
+			.btn-confirm:hover {
+				box-shadow: 0 5px 15px rgba(205, 127, 50, 0.3);
+			}
+
+			.signin-section {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .signin-section h4 {
+        color: #2a2f4f;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .signin-section h4::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: #cd7f32;
+        border-radius: 10px;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .signin-section:hover h4::after {
+        transform: scaleX(1);
+    }
+
+    .signin-link-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .signin-link {
+        color: #2a2f4f;
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        position: relative;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+
+    .signin-link:hover {
+        color: #cd7f32;
+        transform: translateY(-2px);
+    }
+
+    .signin-link i {
+        margin-left: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .signin-link:hover i {
+        transform: translateX(5px);
+    }
+
+			/* Responsive design */
+			@media (max-width: 768px) {
+				.container {
+					flex-direction: column;
+					width: 100%;
+				}
+
+				.left-section, .right-section {
+					width: 100%;
+				}
+
+				.left-section {
+					padding: 40px 20px;
+					order: -1;
+				}
+
+				.right-section {
+					padding: 40px 30px;
+				}
+
+				.name-group {
+					flex-direction: column;
+					gap: 15px;
+				}
+
+				.name-group .form-group {
+					width: 100%;
+					margin-bottom: 0;
+				}
+
+				.role-group {
+					flex-direction: column;
+					align-items: center;
+				}
+
+				.role-option {
+					width: 100%;
+				}
+			}
+
+			/* Animation de chargement */
+			.form-loading {
+				position: relative;
+			}
+
+			.form-loading::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				height: 3px;
+				background: linear-gradient(to right, #2a2f4f, #cd7f32);
+				bottom: 0;
+				left: 0;
+				animation: formLoading 2s infinite;
+			}
+
+			@keyframes formLoading {
+				0% { width: 0%; left: 0; }
+				50% { width: 100%; left: 0; }
+				100% { width: 0%; left: 100%; }
+			}
+
+			
+		</style>
+	</head>
+	<body>
+
+		<div class="container">
+			<!-- Section Gauche - Avatar + Image animée -->
+			<div class="left-section">
+				<div class="avatar-container">
+					{% if app.session.get('temp_avatar_url') %}
+						<img src="{{ app.session.get('temp_avatar_url')|replace({'.glb': '.png'}) }}" class="avatar-animation" alt="Avatar">
+					{% else %}
+						<img src="{{ asset('uploads/images/default_avatar.png') }}" class="avatar-animation" alt="Avatar Animation">
+					{% endif %}
+				</div>
+				<h2>Crée ton propre avatar !</h2>
+				<p>Personnalise ton expérience ArtXcape avec un avatar unique qui te représente.</p>
+				<a href="{{ path('avatar_create') }}" class="btn-avatar">
+					<i class="fas fa-magic"></i> Crée ton avatar
+				</a>
+			</div>
+
+			<!-- Section Droite - Formulaire -->
+			<div class="right-section">
+				<h3>Inscription</h3>
+
+				{{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate', 'class': 'form-loading'}}) }}
+
+				<!-- Nom et Prénom ensemble -->
+				<div class="name-group">
+					<div class="form-group">
+						{{ form_label(registrationForm.nom, 'Nom') }}
+						{{ form_widget(registrationForm.nom, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom'}}) }}
+						<div class="text-danger">{{ form_errors(registrationForm.nom) }}</div>
+					</div>
+
+					<div class="form-group">
+						{{ form_label(registrationForm.prenom, 'Prénom') }}
+						{{ form_widget(registrationForm.prenom, {'attr': {'class': 'form-control', 'placeholder': 'Votre prénom'}}) }}
+						<div class="text-danger">{{ form_errors(registrationForm.prenom) }}</div>
+					</div>
+				</div>
+
+				<!-- Email -->
+				<div class="form-group">
+					{{ form_label(registrationForm.email, 'Email') }}
+					{{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'exemple@email.com'}}) }}
+					<div class="text-danger">{{ form_errors(registrationForm.email) }}</div>
+				</div>
+
+				<!-- Age -->
+				<div class="form-group">
+					{{ form_label(registrationForm.age, 'Âge') }}
+					{{ form_widget(registrationForm.age, {'attr': {'class': 'form-control', 'placeholder': 'Votre âge'}}) }}
+					<div class="text-danger">{{ form_errors(registrationForm.age) }}</div>
+				</div>
+
+				<!-- Numéro de téléphone -->
+				<div class="form-group">
+					{{ form_label(registrationForm.numtlf, 'Numéro de téléphone') }}
+					{{ form_widget(registrationForm.numtlf, {'attr': {'class': 'form-control', 'placeholder': 'Ex: 06 12 34 56 78'}}) }}
+					<div class="text-danger">{{ form_errors(registrationForm.numtlf) }}</div>
+				</div>
+
+				<!-- Mot de passe -->
+				<div class="form-group">
+					{{ form_label(registrationForm.plainPassword, 'Mot de passe') }}
+					{{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control', 'placeholder': 'Créez un mot de passe sécurisé'}}) }}
+					<div class="text-danger">{{ form_errors(registrationForm.plainPassword) }}</div>
+				</div>
+                
+                <!-- Rôle -->
+                <div class="form-group">
+                    {{ form_label(registrationForm.roles, 'Choisissez votre rôle') }}
+                    <div class="role-group">
+                        {% for choice in registrationForm.roles.vars.choices %}
+                            <label class="role-option {% if choice.value in registrationForm.roles.vars.data %}active{% endif %}">
+                                <input type="radio" name="{{ registrationForm.roles.vars.full_name }}" value="{{ choice.value }}"
+                                      {% if choice.value in registrationForm.roles.vars.data %}checked{% endif %}
+                                      class="form-check-input" onclick="updateRoleSelection(this)">
+                                {% if choice.value == 'ROLE_USER' %}
+                                    <i class="fas fa-user"></i> Utilisateur
+                                {% else %}
+                                    <i class="fas fa-user-shield"></i> Administrateur
+                                {% endif %}
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="text-danger">{{ form_errors(registrationForm.roles) }}</div>
+                </div>
+
+				<!-- Champ caché pour l'URL de l'avatar -->
+				{{ form_widget(registrationForm.avatarUrl) }}
+
+				<!-- Boutons -->
+				<div class="buttons">
+					<a href="{{ path('app_login') }}" class="btn btn-cancel">Annuler</a>
+					<button type="submit" class="btn btn-confirm">Créer mon compte</button>
+				</div>
+
+				{{ form_end(registrationForm) }}
+                
+                <!-- Nouveau lien vers la page de connexion -->
+                <div class="signin-link-container">
+                    <a href="{{ path('app_login') }}" class="signin-link">
+                        Vous avez déjà un compte ? Connectez-vous <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+			</div>
+		</div>
+
+		<!-- Script pour activer/désactiver les rôles -->
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+    // Masquer les champs de rôle générés automatiquement qui apparaissent en double
+    const roleFields = document.querySelectorAll('[name^="registrationForm[roles]"]');
+    roleFields.forEach(field => {
+        const parentDiv = field.closest('.form-group');
+        if (parentDiv && !parentDiv.querySelector('.role-group')) {
+            parentDiv.style.display = 'none';
+        }
+    });
+});
+
+			document.addEventListener("DOMContentLoaded", function() {
+                // Remove loading animation once page is fully loaded
+                setTimeout(function() {
+                    document.querySelector('.form-loading').classList.remove('form-loading');
+                }, 1000);
+                
+                // Function to handle role selection
+                function updateRoleSelection(input) {
+                    // Remove active class from all options
+                    document.querySelectorAll('.role-option').forEach(function(option) {
+                        option.classList.remove("active");
+                    });
+                    
+                    // Add active class to selected option
+                    input.closest('.role-option').classList.add("active");
+                    
+                    // Check the radio input
+                    input.checked = true;
+                }
+                
+                // Add click event listener to all role options
+                document.querySelectorAll('.role-option').forEach(function(option) {
+                    option.addEventListener("click", function() {
+                        // Get the radio input inside this option
+                        const input = this.querySelector('input[type="radio"]');
+                        updateRoleSelection(input);
+                    });
+                });
+                
+                // Hide the default Symfony-generated checkboxes
+                const originalRoleField = document.querySelector('div:not(.role-group) > input[name^="registrationForm[roles]"]');
+                if (originalRoleField) {
+                    const parentGroup = originalRoleField.closest('.form-group');
+                    if (parentGroup && !parentGroup.querySelector('.role-group')) {
+                        parentGroup.style.display = 'none';
+                    }
+                }
+                
+                // Add the updateRoleSelection function to global scope for the onclick handler
+                window.updateRoleSelection = updateRoleSelection;
+                
+                // Add input focus animations
+                const formInputs = document.querySelectorAll('.form-control');
+                formInputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.parentElement.classList.add('input-focus');
+                    });
+                    
+                    input.addEventListener('blur', function() {
+                        this.parentElement.classList.remove('input-focus');
+                    });
+                });
+            });
+
+			document.addEventListener('DOMContentLoaded', function() {
+				// Mettre à jour le champ avatarUrl lorsque l'avatar est créé
+				{% if app.session.get('avatar_url') %}
+					document.querySelector('[name="registration_form[avatarUrl]"]').value = "{{ app.session.get('avatar_url') }}";
+				{% endif %}
+			});
+		</script>
+	</body>
+</html>

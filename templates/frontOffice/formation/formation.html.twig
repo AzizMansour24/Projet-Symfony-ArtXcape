@@ -1,0 +1,1107 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<!--********************************
+   		Code Start From Here 
+	******************************** -->
+
+
+   
+    
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+        <!--==============================
+        Breadcumb
+        ============================== -->
+        <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+            <div class="container">
+                <div class="breadcumb-content">
+                    <h1 class="breadcumb-title">Nos Formations</h1>
+                </div>
+                <ul class="breadcumb-menu">
+                    <li><a href="{{ path('app_home') }}">Accueil</a></li>
+                    <li class="active">Formations</li>
+                </ul>                
+            </div>
+        </div>
+
+       
+        <!--==============================
+        Formation List
+        ============================== -->
+        <section class="space-top space-extra-bottom">
+            <div class="container">
+                <!-- Add search input -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mx-auto">
+                        <div class="search-box">
+                            <input type="text" id="searchFormation" class="form-control" placeholder="Rechercher une formation...">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <div class="search-filters">
+                            <button class="btn btn-sm btn-filter active" data-filter="titre">
+                                <i class="fas fa-heading"></i> Titre
+                            </button>
+                            <button class="btn btn-sm btn-filter" data-filter="prix">
+                                <i class="fas fa-tag"></i> Prix
+                            </button>
+                            <button class="btn btn-sm btn-filter" data-filter="categorie">
+                                <i class="fas fa-folder"></i> Catégorie
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row gy-4" id="formationsContainer">
+                    {% for formation in formations %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="vs-blog blog-style1">
+                                {% if formation.video %}
+                                    {% set video_id = formation.video|replace({
+                                        'https://www.youtube.com/watch?v=': '',
+                                        'https://youtube.com/watch?v=': '',
+                                        'https://youtu.be/': '',
+                                        'http://www.youtube.com/watch?v=': '',
+                                        'http://youtube.com/watch?v=': '',
+                                        'http://youtu.be/': ''
+                                    })|split('?')|first|split('&')|first %}
+                                    <div class="blog-img">
+                                        <img src="https://i.ytimg.com/vi/{{ video_id }}/hqdefault.jpg" alt="Formation Thumbnail" class="w-100">
+                                        <div class="blog-img-overlay">
+                                            <i class="fas fa-play-circle"></i>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="blog-img">
+                                        <img src="/assets/img/product/product-details1.png" alt="Formation Image" class="w-100">
+                                    </div>
+                                {% endif %}
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <a href="#"><i class="far fa-calendar-alt"></i>{{ formation.dateDebut|date('d/m/Y') }}</a>
+                                        <a href="#"><i class="fas fa-tag"></i>{{ formation.categorie.nom }}</a>
+                                    </div>
+                                    <h3 class="blog-title h5 font-body">{{ formation.titre }}</h3>
+                                    <p class="blog-text">{{ formation.description|slice(0, 100) }}...</p>
+                                    <div class="blog-bottom">
+                                        <div class="price-tag">{{ formation.prix }} TND</div>
+                                        <div class="participants">
+                                            <i class="fas fa-users"></i> {{ formation.nbrpart }} places
+                                        </div>
+                                    </div>
+                                    <a href="#QuickView-{{ formation.id }}" class="link-btn popup-content">En savoir plus<i class="far fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--==============================
+                        Quick View Modal for each formation
+                        ============================== -->
+                        <div id="QuickView-{{ formation.id }}" class="white-popup mfp-hide">
+                            <div class="container bg-white">
+                                <div class="row gx-50">
+                                    <div class="col-lg-6">
+                                        <div class="product-big-img">
+                                            {% if formation.video %}
+                                                {% set video_id = formation.video|replace({
+                                                    'https://www.youtube.com/watch?v=': '',
+                                                    'https://youtube.com/watch?v=': '',
+                                                    'https://youtu.be/': '',
+                                                    'http://www.youtube.com/watch?v=': '',
+                                                    'http://youtube.com/watch?v=': '',
+                                                    'http://youtu.be/': ''
+                                                })|split('?')|first|split('&')|first %}
+                                                <div class="video-preview">
+                                                    <img src="https://i.ytimg.com/vi/{{ video_id }}/hqdefault.jpg" alt="Aperçu de la formation" class="video-thumbnail img-fluid">
+                                                    <div class="video-overlay">
+                                                        <i class="fas fa-play-circle"></i>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="img">
+                                                    <img src="assets/img/product/product-details1.png" alt="Formation Image">
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 align-self-center">
+                                        <div class="product-about">
+                                            <p class="price">{{ formation.prix }} TND</p>
+                                            <h2 class="product-title">{{ formation.titre }}</h2>
+                                            <p class="text">{{ formation.description }}</p>
+                                            <div class="checklist">
+                                                <ul>
+                                                    <li><i class="far fa-check-circle"></i> Date début: {{ formation.dateDebut|date('d/m/Y') }}</li>
+                                                    <li><i class="far fa-check-circle"></i> Date fin: {{ formation.dateFin|date('d/m/Y') }}</li>
+                                                    <li><i class="far fa-check-circle"></i> Places disponibles: {{ formation.nbrpart }}</li>
+                                                </ul>
+                                            </div>
+                                            <div class="actions">
+                                                {% if app.user %}
+                                                    {% set isInscrit = false %}
+                                                    {% for inscription in userInscriptions %}
+                                                        {% if inscription.formation.id == formation.id %}
+                                                            {% set isInscrit = true %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    
+                                                    {% if not isInscrit %}
+                                                        <form action="{{ path('formation_inscription', {'id': formation.id}) }}" method="GET" class="inscription-form">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('inscription' ~ formation.id) }}">
+                                                            <input type="hidden" name="user_id" value="{{ app.user.id }}">
+                                                            <button type="submit" class="btn" {% if formation.nbrpart <= 0 %}disabled{% endif %}>
+                                                                {% if formation.nbrpart <= 0 %}
+                                                                    COMPLET
+                                                                {% else %}
+                                                                    S'INSCRIRE <i class="fas fa-user-plus ms-2"></i>
+                                                                {% endif %}
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <div class="inscription-status">
+                                                            <span class="badge bg-success">
+                                                                <i class="fas fa-check-circle"></i> Vous êtes inscrit à cette formation
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <a href="{{ path('app_login') }}" class="btn">
+                                                        CONNECTEZ-VOUS POUR VOUS INSCRIRE <i class="fas fa-sign-in-alt ms-2"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                            <div class="product_meta">
+                                                <span class="posted_in">Catégorie: <a href="#" rel="tag">{{ formation.categorie.nom }}</a></span>
+                                                {% if is_granted('ROLE_USER') %}
+                                                    <div class="mt-3">
+                                                        <a href="{{ path('formation_transcriptions') }}" class="btn btn-sm btn-secondary">
+                                                            <i class="fas fa-list"></i> Voir toutes les transcriptions
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                                {% if formation.video %}
+                                                    {% if app.user %}
+                                                        {% set isInscrit = false %}
+                                                        {% for inscription in formation.inscriptions %}
+                                                            {% if inscription.user == app.user %}
+                                                                {% set isInscrit = true %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                        
+                                                        {% if isInscrit %}
+                                                            <span class="video_link">
+                                                                <a href="{{ formation.video }}" target="_blank" class="btn btn-sm btn-success mt-2">
+                                                                    <i class="fas fa-play-circle"></i> Voir la vidéo du cours
+                                                                </a>
+                                                                <a href="{{ path('formation_extract_text', {'id': formation.id}) }}" 
+                                                                   class="btn btn-sm btn-info mt-2 ms-2">
+                                                                    <i class="fas fa-file-alt"></i> Extraire le texte
+                                                                </a>
+                                                            </span>
+                                                        {% else %}
+                                                            <div class="alert alert-warning mt-2">
+                                                                <i class="fas fa-lock"></i> Inscrivez-vous à cette formation pour accéder à la vidéo du cours
+                                                            </div>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <div class="alert alert-info mt-2">
+                                                            <i class="fas fa-lock"></i> Connectez-vous et inscrivez-vous pour accéder à la vidéo du cours
+                                                        </div>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button title="Close (Esc)" type="button" class="mfp-close">×</button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 text-center">
+                            <div class="error-content">
+                                <h3>Aucune formation disponible</h3>
+                                <p>Revenez bientôt pour découvrir nos nouvelles formations.</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="vs-pagination">
+                    {% if totalPages > 1 %}
+                        <ul>
+                            {# Previous page link #}
+                            {% if currentPage > 1 %}
+                                <li>
+                                    <a href="{{ path('front_formation', {'page': currentPage - 1}) }}" class="pagination-link">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {# First page #}
+                            {% if currentPage > 3 %}
+                                <li>
+                                    <a href="{{ path('front_formation', {'page': 1}) }}" class="pagination-link">1</a>
+                                </li>
+                                {% if currentPage > 4 %}
+                                    <li><span class="pagination-dots">...</span></li>
+                                {% endif %}
+                            {% endif %}
+
+                            {# Page numbers #}
+                            {% for i in max(1, currentPage - 2)..min(totalPages, currentPage + 2) %}
+                                <li>
+                                    <a href="{{ path('front_formation', {'page': i}) }}" 
+                                       class="pagination-link {{ currentPage == i ? 'active' : '' }}">
+                                        {{ i }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+
+                            {# Last page #}
+                            {% if currentPage < totalPages - 2 %}
+                                {% if currentPage < totalPages - 3 %}
+                                    <li><span class="pagination-dots">...</span></li>
+                                {% endif %}
+                                <li>
+                                    <a href="{{ path('front_formation', {'page': totalPages}) }}" class="pagination-link">
+                                        {{ totalPages }}
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {# Next page link #}
+                            {% if currentPage < totalPages %}
+                                <li>
+                                    <a href="{{ path('front_formation', {'page': currentPage + 1}) }}" class="pagination-link">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+         <!-- Scroll To Top -->
+    <div class="scroll-top">
+        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+            <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919, 307.919; stroke-dashoffset: 307.919;"></path>
+        </svg>
+    </div>
+
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.css' rel='stylesheet' />
+    
+    <style>
+        /* Card Styles */
+        .vs-blog {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .vs-blog:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .blog-content {
+            padding: 25px;
+        }
+
+        /* Meta Information */
+        .blog-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .blog-meta a {
+            color: #666;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .blog-meta a i {
+            color: #DF6D14;
+        }
+
+        /* Title */
+        .blog-title {
+            color: #333;
+            font-size: 1.2em;
+            margin-bottom: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+            min-height: 2.8em;
+        }
+
+        /* Description */
+        .blog-text {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 4.8em;
+        }
+
+        /* Bottom Section */
+        .blog-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+
+        .price-tag {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #DF6D14;
+        }
+
+        .participants {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .participants i {
+            color: #DF6D14;
+        }
+
+        /* Link Button */
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #DF6D14;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        .link-btn:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #DF6D14;
+            transition: width 0.3s ease;
+        }
+
+        .link-btn:hover {
+            color: #F17B25;
+        }
+
+        .link-btn:hover:after {
+            width: 100%;
+        }
+
+        .link-btn:hover i {
+            transform: translateX(5px);
+        }
+
+        .link-btn i {
+            transition: transform 0.3s ease;
+        }
+
+        /* Modal Styles */
+        .white-popup {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .product-big-img {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .video-preview {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .video-overlay {
+            background: rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .video-overlay:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .product-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+        }
+
+        .checklist li i {
+            color: #DF6D14;
+            font-size: 1.1em;
+        }
+
+        /* Section Header */
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .section-subtitle {
+            color: #666;
+            font-size: 1.1em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .blog-content {
+                padding: 20px;
+            }
+
+            .blog-title {
+                font-size: 1.1em;
+            }
+
+            .price-tag {
+                font-size: 1.2em;
+            }
+        }
+
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(45deg, #DF6D14, #F17B25);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(223, 109, 20, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Badge Styles */
+        .badge.bg-success {
+            background: linear-gradient(45deg, #DF6D14, #F17B25) !important;
+        }
+
+        /* Alert Styles */
+        .alert-warning {
+            background-color: rgba(223, 109, 20, 0.1);
+            border: 1px solid rgba(223, 109, 20, 0.2);
+            color: #DF6D14;
+        }
+
+        .alert-info {
+            background-color: rgba(223, 109, 20, 0.1);
+            border: 1px solid rgba(223, 109, 20, 0.2);
+            color: #DF6D14;
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: linear-gradient(45deg, #138496, #117a8b);
+            color: white;
+        }
+
+        /* Search box styles */
+        .search-box {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-box input {
+            padding: 15px 20px;
+            padding-right: 50px;
+            border-radius: 10px;
+            border: 2px solid #eee;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .search-box input:focus {
+            border-color: #DF6D14;
+            box-shadow: 0 0 15px rgba(223, 109, 20, 0.1);
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #DF6D14;
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading-spinner i {
+            color: #DF6D14;
+            font-size: 2em;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .btn-filter {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 5px 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-filter:hover {
+            background: #eee;
+            color: #DF6D14;
+        }
+
+        .btn-filter.active {
+            background: #DF6D14;
+            color: white;
+            border-color: #DF6D14;
+        }
+
+        .btn-filter i {
+            margin-right: 5px;
+        }
+
+        .blog-img {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px 15px 0 0;
+            height: 200px;
+        }
+
+        .blog-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .blog-img-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .blog-img-overlay i {
+            color: white;
+            font-size: 3em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .vs-blog:hover .blog-img img {
+            transform: scale(1.1);
+        }
+
+        .vs-blog:hover .blog-img-overlay {
+            opacity: 1;
+        }
+
+        /* Calendar Styles */
+        .calendar-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        
+        .fc {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .fc .fc-button-primary {
+            background-color: #DF6D14;
+            border-color: #DF6D14;
+        }
+        
+        .fc .fc-button-primary:hover {
+            background-color: #F17B25;
+            border-color: #F17B25;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .fc-event:hover {
+            transform: translateY(-2px);
+        }
+        
+        .calendar-toggle {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-event-tooltip {
+            padding: 10px;
+            max-width: 300px;
+        }
+
+        .calendar-event-tooltip h4 {
+            margin: 0 0 10px;
+            color: #DF6D14;
+        }
+
+        .event-details {
+            display: flex;
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .event-details span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .event-status {
+            margin: 10px 0;
+        }
+
+        .event-date {
+            color: #666;
+            font-style: italic;
+        }
+
+        .fc .fc-list-event:hover td {
+            background-color: rgba(223, 109, 20, 0.1);
+        }
+
+        .calendar-section.loading {
+            position: relative;
+        }
+
+        .calendar-section.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: #DF6D14;
+        }
+
+        /* Pagination Styles */
+        .vs-pagination {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .vs-pagination ul {
+            display: inline-flex;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            gap: 5px;
+        }
+
+        .vs-pagination li {
+            margin: 0;
+        }
+
+        .pagination-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid #eee;
+            color: #666;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-link:hover {
+            border-color: #DF6D14;
+            color: #DF6D14;
+            text-decoration: none;
+        }
+
+        .pagination-link.active {
+            background: #DF6D14;
+            border-color: #DF6D14;
+            color: white;
+        }
+
+        .pagination-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: #666;
+        }
+
+        /* Responsive Pagination */
+        @media (max-width: 576px) {
+            .pagination-link {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .vs-pagination ul {
+                gap: 3px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/main.min.js'></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchFormation');
+            const formationsContainer = document.getElementById('formationsContainer');
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            let searchTimeout;
+            let currentFilter = 'titre'; // Default filter
+
+            // Filter button click handlers
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    if (searchInput.value.trim()) {
+                        searchFormations(searchInput.value.trim());
+                    }
+                });
+            });
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                
+                searchTimeout = setTimeout(() => {
+                    const query = this.value.trim();
+                    searchFormations(query);
+                }, 300);
+            });
+
+            function searchFormations(query) {
+                // Show loading spinner
+                formationsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </div>
+                `;
+
+                fetch(`/formation/search?q=${encodeURIComponent(query)}&filter=${currentFilter}`)
+                    .then(response => response.json())
+                    .then(formations => {
+                        formationsContainer.innerHTML = '';
+                        
+                        if (formations.length === 0) {
+                            formationsContainer.innerHTML = `
+                                <div class="col-12 text-center">
+                                    <div class="error-content">
+                                        <h3>Aucune formation trouvée</h3>
+                                        <p>Essayez avec d'autres termes de recherche.</p>
+                                    </div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        // Filter formations based on current filter and query
+                        const filteredFormations = formations.filter(formation => {
+                            const searchQuery = query.toLowerCase();
+                            switch(currentFilter) {
+                                case 'titre':
+                                    return formation.titre.toLowerCase().includes(searchQuery);
+                                case 'prix':
+                                    return formation.prix.toString().includes(searchQuery);
+                                case 'categorie':
+                                    return formation.categorie.toLowerCase().includes(searchQuery);
+                                default:
+                                    return true;
+                            }
+                        });
+
+                        if (filteredFormations.length === 0) {
+                            formationsContainer.innerHTML = `
+                                <div class="col-12 text-center">
+                                    <div class="error-content">
+                                        <h3>Aucune formation trouvée</h3>
+                                        <p>Essayez avec d'autres termes de recherche.</p>
+                                    </div>
+                                </div>
+                            `;
+                            return;
+                        }
+
+                        filteredFormations.forEach(formation => {
+                            const formationHtml = `
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="vs-blog blog-style1">
+                                        ${formation.videoId ? `
+                                            <div class="blog-img">
+                                                <img src="https://i.ytimg.com/vi/${formation.videoId}/hqdefault.jpg" alt="Formation Thumbnail" class="w-100">
+                                                <div class="blog-img-overlay">
+                                                    <i class="fas fa-play-circle"></i>
+                                                </div>
+                                            </div>
+                                        ` : `
+                                            <div class="blog-img">
+                                                <img src="/assets/img/product/product-details1.png" alt="Formation Image" class="w-100">
+                                            </div>
+                                        `}
+                                        <div class="blog-content">
+                                            <div class="blog-meta">
+                                                <a href="#"><i class="far fa-calendar-alt"></i>${formation.dateDebut}</a>
+                                                <a href="#"><i class="fas fa-tag"></i>${formation.categorie}</a>
+                                            </div>
+                                            <h3 class="blog-title h5 font-body">${formation.titre}</h3>
+                                            <p class="blog-text">${formation.description.slice(0, 100)}...</p>
+                                            <div class="blog-bottom">
+                                                <div class="price-tag">${formation.prix} TND</div>
+                                                <div class="participants">
+                                                    <i class="fas fa-users"></i> ${formation.nbrpart} places
+                                                </div>
+                                            </div>
+                                            <a href="#QuickView-${formation.id}" class="link-btn popup-content">En savoir plus<i class="far fa-arrow-right"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="QuickView-${formation.id}" class="white-popup mfp-hide">
+                                    <div class="container bg-white">
+                                        <div class="row gx-50">
+                                            <div class="col-lg-6">
+                                                <div class="product-big-img">
+                                                    ${formation.videoId ? `
+                                                        <div class="video-preview">
+                                                            <img src="https://i.ytimg.com/vi/${formation.videoId}/hqdefault.jpg" alt="Aperçu de la formation" class="video-thumbnail img-fluid">
+                                                            <div class="video-overlay">
+                                                                <i class="fas fa-play-circle"></i>
+                                                            </div>
+                                                        </div>
+                                                    ` : `
+                                                        <div class="img">
+                                                            <img src="assets/img/product/product-details1.png" alt="Formation Image">
+                                                        </div>
+                                                    `}
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 align-self-center">
+                                                <div class="product-about">
+                                                    <p class="price">${formation.prix} TND</p>
+                                                    <h2 class="product-title">${formation.titre}</h2>
+                                                    <p class="text">${formation.description}</p>
+                                                    <div class="checklist">
+                                                        <ul>
+                                                            <li><i class="far fa-check-circle"></i> Date début: ${formation.dateDebut}</li>
+                                                            <li><i class="far fa-check-circle"></i> Date fin: ${formation.dateFin}</li>
+                                                            <li><i class="far fa-check-circle"></i> Places disponibles: ${formation.nbrpart}</li>
+                                                        </ul>
+                                                    </div>
+                                                    <!-- Add more details as needed -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button title="Close (Esc)" type="button" class="mfp-close">×</button>
+                                    </div>
+                                </div>
+                            `;
+                            formationsContainer.insertAdjacentHTML('beforeend', formationHtml);
+                        });
+
+                        // Reinitialize Magnific Popup for new elements
+                        $('.popup-content').magnificPopup({
+                            type: 'inline',
+                            preloader: false,
+                            focus: '#username',
+                            modal: true
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        formationsContainer.innerHTML = `
+                            <div class="col-12 text-center">
+                                <div class="error-content">
+                                    <h3>Une erreur est survenue</h3>
+                                    <p>Veuillez réessayer plus tard.</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+            }
+
+            {% if app.user %}
+                // Calendar initialization
+                const calendarEl = document.getElementById('calendar');
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'fr',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,dayGridWeek,listWeek'
+                    },
+                    events: '/inscription/calendar-events',
+                    eventDidMount: function(info) {
+                        // Add tooltip
+                        tippy(info.el, {
+                            content: `
+                                <div class="calendar-event-tooltip">
+                                    <h4>${info.event.title}</h4>
+                                    <p>${info.event.extendedProps.description.substring(0, 100)}...</p>
+                                    <div class="event-details">
+                                        <span><i class="fas fa-money-bill"></i> ${info.event.extendedProps.price} TND</span>
+                                        <span><i class="fas fa-users"></i> ${info.event.extendedProps.places} places</span>
+                                    </div>
+                                    <div class="event-status">
+                                        <span class="badge bg-${info.event.extendedProps.status === 'Pending' ? 'warning' : 'success'}">
+                                            ${info.event.extendedProps.status}
+                                        </span>
+                                    </div>
+                                    <div class="event-date">
+                                        <small>Inscrit le: ${info.event.extendedProps.inscriptionDate}</small>
+                                    </div>
+                                </div>
+                            `,
+                            allowHTML: true,
+                            placement: 'top',
+                            interactive: true,
+                            theme: 'light'
+                        });
+                    },
+                    eventClick: function(info) {
+                        info.jsEvent.preventDefault();
+                        if (info.event.url) {
+                            $(info.event.url).magnificPopup({
+                                type: 'inline',
+                                preloader: false,
+                                modal: true
+                            }).magnificPopup('open');
+                        }
+                    },
+                    loading: function(isLoading) {
+                        if (isLoading) {
+                            calendarEl.classList.add('loading');
+                        } else {
+                            calendarEl.classList.remove('loading');
+                        }
+                    }
+                });
+
+                calendar.render();
+
+                // Toggle calendar visibility
+                const toggleButton = document.getElementById('toggleCalendar');
+                const calendarDiv = document.getElementById('calendar');
+                
+                toggleButton.addEventListener('click', function() {
+                    if (calendarDiv.style.display === 'none') {
+                        calendarDiv.style.display = 'block';
+                        calendar.updateSize();
+                    } else {
+                        calendarDiv.style.display = 'none';
+                    }
+                });
+            {% endif %}
+        });
+    </script>
+    
+    <!-- Add Tippy.js for tooltips -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+{% endblock %}
+ 

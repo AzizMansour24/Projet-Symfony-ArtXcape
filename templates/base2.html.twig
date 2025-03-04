@@ -1,0 +1,493 @@
+{% if not is_granted('ROLE_ADMIN') %}
+	<script>
+		window.location.href = "{{ path('front_office_home') }}";
+	</script>
+{% endif %}
+
+{% if app.user %}
+	<p>Bienvenue,
+		{{ app.user.nom }}
+		{{ app.user.prenom }}</p>
+{% else %}
+	<p>Utilisateur non connecté</p>
+{% endif %}
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}ArtXcape Admin{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="shortcut icon" href="/assets/frontOffice/newimg/logoicon.png" />
+        {% block stylesheets %}
+                <!-- plugins:css -->
+            <link rel="stylesheet" href="/assets/backOffice/vendors/mdi/css/materialdesignicons.min.css">
+            <link rel="stylesheet" href="/assets/backOffice/vendors/css/vendor.bundle.base.css">
+            <!-- endinject -->
+            <!-- Plugin css for this page -->
+            <link rel="stylesheet" href="/assets/backOffice/vendors/jvectormap/jquery-jvectormap.css">
+            <link rel="stylesheet" href="/assets/backOffice/vendors/flag-icon-css/css/flag-icon.min.css">
+            <link rel="stylesheet" href="/assets/backOffice/vendors/owl-carousel-2/owl.carousel.min.css">
+            <link rel="stylesheet" href="/assets/backOffice/vendors/owl-carousel-2/owl.theme.default.min.css">
+            <!-- End plugin css for this page -->
+            <!-- inject:css -->
+            <!-- endinject -->
+            <!-- Layout styles -->
+            <link rel="stylesheet" href="/assets/backOffice/css/style.css">
+            <!-- End layout styles -->
+        {% endblock %}
+
+        
+    </head>
+    <body>
+            <div class="container-scroller">
+            <!-- partial:partials/_sidebar.html -->
+            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
+                <a class="sidebar-brand brand-logo" ><img src="/assets/backOffice/newimg/logo-white.png" alt="logo" /></a>
+                <a class="sidebar-brand brand-logo-mini" ><img src="/assets/backOffice/newimg/logo-white2.png" alt="logo" /></a>
+                </div>
+                <ul class="nav">
+                <li class="nav-item profile">
+						<div class="profile-desc" style="justify-content: normal;">
+							<div class="profile-pic">
+								<div class="count-indicator">
+									<img class="img-xs rounded-circle" src="{{ app.user.avatarUrl|replace({'.glb': '.png'}) }}" alt="Avatar">
+
+									<span class="count bg-success"></span>
+								</div>
+								<span class="count bg-success"></span>
+							</div>
+							<div class="profile-name">
+								<h5 class="mb-0 font-weight-normal">
+									{{ app.user.prenom }}
+									{{ app.user.nom }}</h5>
+							</div>
+						</div>
+
+					</li>
+                <li class="nav-item nav-category">
+                    <span class="nav-link">Navigation</span>
+                </li>
+
+
+                <!--ACCUEIL-->
+                <li class="nav-item menu-items">
+                    <a class="nav-link" href="/back2">
+                    <span class="menu-icon">
+                        <i class="mdi mdi-speedometer"></i>
+                    </span>
+                    <span class="menu-title">Accueil</span>
+                    </a>
+                </li>
+
+
+               <!--Utilisateur-->
+					<li class="nav-item menu-items">
+						<a
+							class="nav-link" data-toggle="collapse" href="#users-menu" aria-expanded="false" aria-controls="users-menu">
+							<!--NEW icon-->
+							<span class="menu-icon">
+								<i class="mdi mdi-account-multiple"></i>
+							</span>
+							<!--NEW icon-->
+							<span class="menu-title">Utilisateurs</span>
+							<i class="menu-arrow"></i>
+						</a>
+						<!--NEW elements-->
+						<div class="collapse" id="users-menu">
+							<ul class="nav flex-column sub-menu">
+								<li class="nav-item">
+									<a class="nav-link" href="/backShowuser">users</a>
+								</li>
+							</ul>
+						</div>
+						<!--NEW elements-->
+					</li>
+					<!--utilisateur-->
+
+
+                <!--gallerie-->
+                <li class="nav-item menu-items">
+                    <a class="nav-link" data-toggle="collapse" href="#gallerie-menu" aria-expanded="false" aria-controls="gallerie-menu">
+                    <!--NEW icon-->
+                    <span class="menu-icon">
+                        <i class="mdi mdi-book-open-page-variant"></i>
+                    </span>
+                    <!--NEW icon-->
+                    <span class="menu-title">Galleries</span>
+                    <i class="menu-arrow"></i>
+                    </a>
+                    <!--NEW elements-->
+                    <div class="collapse" id="gallerie-menu">
+                    <ul class="nav flex-column sub-menu">
+                        <li class="nav-item"> <a class="nav-link" href="/backShowgallerie">Galleries</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="/backShowarticles">Articles</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="/backShowlikes">Likes</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="/backShowCommandes">Commandes</a></li>
+                    </ul>
+                    </div>
+                    <!--NEW elements-->
+                </li>
+                <!--gallerie-->
+
+
+
+
+                <!--formation-->
+                <li class="nav-item menu-items">
+                    <a class="nav-link" data-toggle="collapse" href="#formation-menu" aria-expanded="false" aria-controls="formation-menu">
+                    <!--NEW icon-->
+                    <span class="menu-icon">
+                        <i class="mdi mdi-lead-pencil"></i>
+                    </span>
+                    <!--NEW icon-->
+                    <span class="menu-title">Formations</span>
+                    <i class="menu-arrow"></i>
+                    </a>
+                    <!--NEW elements-->
+                    <div class="collapse" id="formation-menu">
+                    <ul class="nav flex-column sub-menu">
+                        <li class="nav-item"> <a class="nav-link" href="/backformation">list formation</a></li>
+                        <li class="nav-item"> <a class="nav-link" href="/backcategorie">list categorie</a></li>
+                    </ul>
+                    </div>
+                    <!--NEW elements-->
+                </li>
+                <!--formation-->
+
+
+                <!--Evenements-->
+                <li class="nav-item menu-items">
+                    <a class="nav-link" data-toggle="collapse" href="#event-menu" aria-expanded="false" aria-controls="event-menu">
+                    <!--NEW icon-->
+                    <span class="menu-icon">
+                        <i class="mdi mdi-presentation-play"></i>
+                    </span>
+                    <!--NEW icon-->
+                    <span class="menu-title">Evenements</span>
+                    <i class="menu-arrow"></i>
+                    </a>
+                    <!--NEW elements-->
+                    <div class="collapse" id="event-menu">
+                    <ul class="nav flex-column sub-menu">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('back_showevent') }}">Event list</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_donation_show') }}">Donation List</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('back_showreservation') }}">Reservation List</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_models_show') }}">models3d</a>
+                        </li>
+                    </ul>
+
+                    </div>
+                    <!--NEW elements-->
+                </li>
+                <!--Evenements-->
+
+                <!--Jobs-->
+                <li class="nav-item menu-items">
+                    <a class="nav-link" data-toggle="collapse" href="#jobs-menu" aria-expanded="false" aria-controls="jobs-menu">
+                    <!--NEW icon-->
+                    <span class="menu-icon">
+                        <i class="mdi mdi-clipboard-account"></i>
+                    </span>
+                    <!--NEW icon-->
+                    <span class="menu-title">Jobs</span>
+                    <i class="menu-arrow"></i>
+                    </a>
+                    <!--NEW elements-->
+                    <div class="collapse" id="jobs-menu">
+                    <ul class="nav flex-column sub-menu">
+                        <!-- Update the href to match your backoffice route -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('backoffice_emploi') }}">emplois</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('backoffice_candidatures') }}">candidatures</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('backoffice_candidature_offre_list') }}">candidatures_offres</a>
+                        </li>
+                    </ul>
+                </div>
+
+                    <!--NEW elements-->
+                </li>
+                
+                <!--Jobs-->
+
+                <!--Reclamations/Forum-->
+                    <li class="nav-item menu-items">
+                        <a class="nav-link" data-toggle="collapse" href="#rec-menu" aria-expanded="false" aria-controls="rec-menu">
+                            <span class="menu-icon">
+                                <i class="mdi mdi-phone-outgoing"></i>
+                            </span>
+                            <span class="menu-title">Forum</span>
+                            <i class="menu-arrow"></i>
+                        </a>
+                        <div class="collapse" id="rec-menu">
+                            <ul class="nav flex-column sub-menu">
+                                <li class="nav-item"> <a class="nav-link" href="/forum/back">Postes</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="/forum/comments/back">Commentaires</a></li>
+                                <li class="nav-item"> <a class="nav-link" href="/forum/badwords/back">BadWords</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                <!--Reclamation/Forum-->
+                
+                
+                
+            </nav>
+            <!-- partial -->
+            <div class="container-fluid page-body-wrapper">
+                <!-- partial:partials/_navbar.html -->
+                <nav class="navbar p-0 fixed-top d-flex flex-row">
+                <div class="navbar-brand-wrapper d-flex d-lg-none align-items-center justify-content-center">
+                    <a class="navbar-brand brand-logo-mini" href="index.html"><img src="/assets/backOffice/images/logo-mini.svg" alt="logo" /></a>
+                </div>
+                <div class="navbar-menu-wrapper flex-grow d-flex align-items-stretch">
+                    <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                    <span class="mdi mdi-menu"></span>
+                    </button>
+                    <ul class="navbar-nav w-100">
+                    <li class="nav-item w-100">
+                        <form class="nav-link mt-2 mt-md-0 d-none d-lg-flex search">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher" onkeyup="filterMenu()">
+                        </form>
+
+                    </li>
+                    </ul>
+                    <ul class="navbar-nav navbar-nav-right">
+                    <li class="nav-item dropdown d-none d-lg-block">
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="createbuttonDropdown">
+                        <h6 class="p-3 mb-0">Projects</h6>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-file-outline text-primary"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">Software Development</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-web text-info"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">UI Development</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-layers text-danger"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">Software Testing</p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <p class="p-3 mb-0 text-center">See all projects</p>
+                        </div>
+                    </li>
+                    <li class="nav-item nav-settings d-none d-lg-block">
+                        <a class="nav-link" href="#">
+                        <i class="mdi mdi-view-grid"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown border-left">
+                        <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                        <i class="mdi mdi-email"></i>
+                        <span class="count bg-success"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="messageDropdown">
+                        <h6 class="p-3 mb-0">Messages</h6>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <img src="/assets/backOffice/images/faces/face4.jpg" alt="image" class="rounded-circle profile-pic">
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">Mark send you a message</p>
+                            <p class="text-muted mb-0"> 1 Minutes ago </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <img src="/assets/backOffice/images/faces/face2.jpg" alt="image" class="rounded-circle profile-pic">
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">Cregh send you a message</p>
+                            <p class="text-muted mb-0"> 15 Minutes ago </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <img src="/assets/backOffice/images/faces/face3.jpg" alt="image" class="rounded-circle profile-pic">
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject ellipsis mb-1">Profile picture updated</p>
+                            <p class="text-muted mb-0"> 18 Minutes ago </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <p class="p-3 mb-0 text-center">4 new messages</p>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown border-left">
+                        <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-toggle="dropdown">
+                        <i class="mdi mdi-bell"></i>
+                        <span class="count bg-danger"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
+                        <h6 class="p-3 mb-0">Notifications</h6>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-calendar text-success"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject mb-1">Event today</p>
+                            <p class="text-muted ellipsis mb-0"> Just a reminder that you have an event today </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-settings text-danger"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject mb-1">Settings</p>
+                            <p class="text-muted ellipsis mb-0"> Update dashboard </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item preview-item">
+                            <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-link-variant text-warning"></i>
+                            </div>
+                            </div>
+                            <div class="preview-item-content">
+                            <p class="preview-subject mb-1">Launch Admin</p>
+                            <p class="text-muted ellipsis mb-0"> New admin wow! </p>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <p class="p-3 mb-0 text-center">See all notifications</p>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+								<a class="nav-link" id="profileDropdown" href="#" data-toggle="dropdown">
+									<div class="navbar-profile">
+										<img class="img-xs rounded-circle" src="{{ app.user.avatarUrl|replace({'.glb': '.png'}) }}" alt="Avatar">
+
+										<p class="mb-0 d-none d-sm-block navbar-profile-name">
+											{{ app.user.prenom }}
+											{{ app.user.nom }}</p>
+										<i class="mdi mdi-menu-down d-none d-sm-block"></i>
+									</div>
+								</a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="profileDropdown">
+                        <h6 class="p-3 mb-0">Profile</h6>
+                        <div class="dropdown-divider"></div>
+                        
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ path('app_logout') }}" class="dropdown-item preview-item">
+                        <div class="preview-thumbnail">
+                            <div class="preview-icon bg-dark rounded-circle">
+                                <i class="mdi mdi-logout text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="preview-item-content">
+                            <p class="preview-subject mb-1">Log out</p>
+                        </div>
+                    </a>
+                        <div class="dropdown-divider"></div>
+<a href="/home" class="p-3 mb-0 text-center d-block">Allez vers Front</a>
+</div>
+
+                    </li>
+                    </ul>
+                    <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                    <span class="mdi mdi-format-line-spacing"></span>
+                    </button>
+                </div>
+                </nav>
+
+        {% block body %}
+        
+          
+        {% endblock %}
+
+
+        {% block javascripts %}
+        
+                    <!-- container-scroller -->
+            <!-- plugins:js -->
+            <script src="/assets/backOffice/vendors/js/vendor.bundle.base.js"></script>
+            <!-- endinject -->
+            <!-- Plugin js for this page -->
+            <script src="/assets/backOffice/vendors/chart.js/Chart.min.js"></script>
+            <script src="/assets/backOffice/vendors/progressbar.js/progressbar.min.js"></script>
+            <script src="/assets/backOffice/vendors/jvectormap/jquery-jvectormap.min.js"></script>
+            <script src="/assets/backOffice/vendors/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
+            <script src="/assets/backOffice/vendors/owl-carousel-2/owl.carousel.min.js"></script>
+            <!-- End plugin js for this page -->
+            <!-- inject:js -->
+            <script src="/assets/backOffice/js/off-canvas.js"></script>
+            <script src="/assets/backOffice/js/hoverable-collapse.js"></script>
+            <script src="/assets/backOffice/js/misc.js"></script>
+            <script src="/assets/backOffice/js/settings.js"></script>
+            <script src="/assets/backOffice/js/todolist.js"></script>
+            <!-- endinject -->
+            <!-- Custom js for this page -->
+            <script src="/assets/backOffice/js/dashboard.js"></script>
+            <!-- End custom js for this page -->
+            <script>
+        function filterMenu() {
+            // Récupérer la valeur de la barre de recherche
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            
+            // Récupérer tous les éléments du menu
+            const menuItems = document.querySelectorAll('.nav-item.menu-items');
+            
+            // Parcourir chaque élément du menu
+            menuItems.forEach(item => {
+                const menuTitle = item.querySelector('.menu-title').textContent.toLowerCase();
+                
+                // Si le texte du menu contient la recherche, afficher l'élément, sinon le cacher
+                if (menuTitle.indexOf(searchInput) !== -1) {
+                    item.style.display = '';  // Afficher
+                } else {
+                    item.style.display = 'none';  // Cacher
+                }
+            });
+        }
+    </script>
+
+        {% endblock %}
+    </body>
+</html>

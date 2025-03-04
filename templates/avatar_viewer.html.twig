@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visualisation Avatar 3D</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0;
+            overflow: hidden;
+        } 
+        .viewer-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="viewer-container">
+        <iframe
+            src="{{ avatar_url|replace({'.glb': '.html'}) }}"
+            style="width: 100%; height: 100%; border: none;"
+            allow="camera *; microphone *"
+        ></iframe>
+    </div>
+</body>
+</html> 

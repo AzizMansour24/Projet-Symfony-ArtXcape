@@ -1,0 +1,379 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <br></br><br></br>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Liste Des Commentaires</h1> 
+        </div>
+    </div>
+
+    <!-- Barre d'outils (recherche et boutons) -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInput2" class="form-control" placeholder="Rechercher un commentaire...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="sort-box">
+                <select id="sortField" class="form-control">
+                    <option value="0">Trier par ID</option>
+                    <option value="1">Trier par Contenu</option>
+                    <option value="2">Trier par Auteur</option>
+                    <option value="3">Trier par Post</option>
+                    <option value="4">Trier par Date</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3 text-end">
+            <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+                <i class="mdi mdi-file-pdf me-2"></i>Export PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="commentsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Content</th>
+                                    <th>Author</th>
+                                    <th>Post</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for comment in comments %}
+                                    <tr class="comment-row">
+                                        <td>{{ comment.id }}</td>
+                                        <td>
+                                            {% if comment.gifUrl %}
+                                                <img src="{{ comment.gifUrl }}" alt="Comment GIF" style="max-width: 200px; border-radius: 8px;">
+                                            {% else %}
+                                                {% set content = comment.content %}
+                                                {% if content|length > 50 %}
+                                                    <span class="short-desc">{{ content|slice(0, 50) }}...</span>
+                                                    <span class="full-desc d-none">{{ content }}</span>
+                                                    <a href="#" class="read-more btn btn-link" onclick="toggleDescription(this); return false;">Lire plus</a>
+                                                {% else %}
+                                                    {{ content }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ comment.author.nom }}</td>
+                                        <td>{{ comment.post.title }}</td>
+                                        <td>{{ comment.createdAt|date('Y-m-d H:i') }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown">Action</button>
+                                                <div class="dropdown-menu">
+                                                    <form action="{{ path('comment_delete_back', {id: comment.id}) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this comment?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                                        <button class="btn btn-inverse-danger btn-fw" type="submit">Supprimer</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6">No comments found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button id="prevPage" class="btn btn-outline-secondary">Précédent</button>
+                        <span id="pagination-info" class="fw-bold"></span>
+                        <button id="nextPage" class="btn btn-outline-secondary">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .search-box {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    #searchInput2 {
+        padding-left: 35px;
+    }
+
+    .card {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: none;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group .dropdown-menu {
+        min-width: 150px;
+    }
+
+    .filtered-out {
+        display: none !important;
+    }
+
+    .sort-box {
+        margin-bottom: 15px;
+    }
+
+    .sort-box select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+    }
+
+    .sort-box select:focus {
+        outline: none;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+</style>
+
+<!-- Scripts -->
+<script>
+let currentPage = 1;
+const rowsPerPage = 5;
+
+// Fonction de recherche
+document.getElementById('searchInput2').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#commentsTable tbody tr');
+    let hasResults = false;
+    let visibleRows = [];
+
+    tableRows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        if(text.includes(searchText)) {
+            row.classList.remove('filtered-out');
+            hasResults = true;
+            visibleRows.push(row);
+        } else {
+            row.classList.add('filtered-out');
+        }
+    });
+
+    let noResultsMsg = document.getElementById('noResultsMessage');
+    if (!noResultsMsg) {
+        noResultsMsg = document.createElement('div');
+        noResultsMsg.id = 'noResultsMessage';
+        noResultsMsg.className = 'alert alert-info mt-3 text-center';
+        noResultsMsg.textContent = 'Aucun commentaire trouvé';
+        document.querySelector('.table-responsive').insertAdjacentElement('afterend', noResultsMsg);
+    }
+    
+    noResultsMsg.style.display = hasResults ? 'none' : 'block';
+    currentPage = 1;
+    paginateTable();
+});
+
+function paginateTable() {
+    let table = document.getElementById("commentsTable");
+    let tbody = table.getElementsByTagName("tbody")[0];
+    let rows = tbody.getElementsByTagName("tr");
+    let visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    let totalRows = visibleRows.length;
+    let totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    visibleRows.forEach(row => row.style.display = "none");
+
+    let start = (currentPage - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    for (let i = start; i < end && i < totalRows; i++) {
+        visibleRows[i].style.display = "";
+    }
+
+    document.getElementById("pagination-info").textContent = `Page ${totalPages > 0 ? currentPage : 0} / ${totalPages}`;
+}
+
+document.getElementById('prevPage').addEventListener('click', function() {
+    if (currentPage > 1) {
+        currentPage--;
+        paginateTable();
+    }
+});
+
+document.getElementById('nextPage').addEventListener('click', function() {
+    let table = document.getElementById("commentsTable");
+    let rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+    let visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    let totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        paginateTable();
+    }
+});
+
+// Toggle description
+function toggleDescription(element) {
+    const row = element.closest('td');
+    const shortDesc = row.querySelector('.short-desc');
+    const fullDesc = row.querySelector('.full-desc');
+    
+    if (shortDesc.style.display !== 'none') {
+        shortDesc.style.display = 'none';
+        fullDesc.classList.remove('d-none');
+        element.textContent = 'Lire moins';
+    } else {
+        shortDesc.style.display = '';
+        fullDesc.classList.add('d-none');
+        element.textContent = 'Lire plus';
+    }
+}
+
+function sortRows() {
+    const sortFieldIndex = parseInt(document.getElementById('sortField').value);
+    const tbody = document.getElementById("commentsTable").getElementsByTagName("tbody")[0];
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+
+    rows.sort((a, b) => {
+        let aValue = a.cells[sortFieldIndex].textContent.trim();
+        let bValue = b.cells[sortFieldIndex].textContent.trim();
+
+        // Pour la date
+        if (sortFieldIndex === 4) {
+            return new Date(aValue) - new Date(bValue);
+        }
+        
+        // Pour l'ID
+        if (sortFieldIndex === 0) {
+            return parseInt(aValue) - parseInt(bValue);
+        }
+
+        // Pour le texte
+        return aValue.localeCompare(bValue);
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+    currentPage = 1;
+    paginateTable();
+}
+
+// Initialize pagination and sort event listener
+document.addEventListener("DOMContentLoaded", function() {
+    paginateTable();
+    document.getElementById('sortField').addEventListener('change', sortRows);
+});
+</script>
+
+<!-- Script pour l'export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    const table = document.getElementById("commentsTable");
+    const today = new Date();
+
+    const pdfContainer = document.createElement('div');
+    pdfContainer.innerHTML = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #333; margin-bottom: 10px;">Liste des Commentaires</h1>
+                <p style="color: #666;">Généré le ${today.toLocaleDateString('fr-FR')}</p>
+                <hr style="border: 1px solid #eee; margin: 20px 0;">
+            </div>
+            ${table.outerHTML}
+            <div style="margin-top: 20px; text-align: right; font-size: 12px; color: #666;">
+                <p>Document généré automatiquement</p>
+            </div>
+        </div>
+    `;
+
+    const tableElement = pdfContainer.querySelector('table');
+    tableElement.style.width = '100%';
+    tableElement.style.borderCollapse = 'collapse';
+    tableElement.style.marginBottom = '20px';
+
+    let columnsToHide = [5];
+    let rows = tableElement.getElementsByTagName("tr");
+
+    Array.from(rows).forEach((row, index) => {
+        let cells = row.getElementsByTagName(index === 0 ? "th" : "td");
+        Array.from(cells).forEach((cell, cellIndex) => {
+            if (columnsToHide.includes(cellIndex)) {
+                cell.style.display = 'none';
+            } else {
+                cell.style.padding = '8px 12px';
+                cell.style.border = '1px solid #ddd';
+                if (index === 0) {
+                    cell.style.backgroundColor = '#f8f9fa';
+                    cell.style.color = '#333';
+                    cell.style.fontWeight = 'bold';
+                }
+            }
+        });
+    });
+
+    const opt = {
+        margin: [0.5, 0.5],
+        filename: `comments-${today.toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'in', 
+            format: 'a4', 
+            orientation: 'landscape',
+            compress: true
+        }
+    };
+
+    const button = document.getElementById('exportPdfBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Génération en cours...';
+    button.disabled = true;
+
+    html2pdf().set(opt).from(pdfContainer).save().then(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }).catch(error => {
+        console.error('Erreur lors de la génération du PDF:', error);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        alert('Une erreur est survenue lors de la création du PDF.');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+});
+</script>
+
+{% endblock %}

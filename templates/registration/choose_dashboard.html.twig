@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="container text-center" style="padding-top: 300px; padding-bottom: 50px; background-color: white;">
+		<h2>Bienvenue Administrateur !</h2>
+		<p>Où souhaitez-vous aller ?</p>
+
+		<div class="mt-4">
+			<a href="{{ path('front_office_home') }}" class="btn btn-primary btn-lg">Accéder au Front-Office</a>
+			<a href="{{ path('back_office_home') }}" class="btn btn-dark btn-lg">Accéder au Back-Office</a>
+		</div>
+	</div>
+{% endblock %}

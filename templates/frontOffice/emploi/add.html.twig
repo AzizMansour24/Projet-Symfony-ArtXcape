@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter une Offre d'Emploi{% endblock %}
+
+{% block body %}
+<!--==============================
+    Breadcumb
+    ============================== -->
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container"> 
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Ajouter une Offre d'Emploi</h1>
+            </div>
+                            
+        </div>
+    </div>
+    <div class="container mt-5">
+        
+
+        {# Afficher les messages d'erreur #}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'class': 'form-horizontal'}}) }}
+
+                {# Champ Titre #}
+                <div class="form-group row">
+                    {{ form_label(form.titre, 'Titre', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le titre de l\'offre'}}) }}
+                        <small class="form-text text-muted">Le titre doit contenir au moins 3 caractères.</small>
+                    </div>
+                </div>
+
+                {# Champ Description #}
+                <div class="form-group row">
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Décrivez l\'offre', 'rows': 4}}) }}
+                        <small class="form-text text-muted">Minimum 10 caracteres</small>
+                    </div>
+                </div>
+
+                {# Champ Compétences Requises #}
+                <div class="form-group row">
+                    {{ form_label(form.competences_requises, 'Compétences Requises', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.competences_requises, {'attr': {'class': 'form-control', 'placeholder': 'Listez les compétences requises', 'rows': 4}}) }}
+                    </div>
+                </div>
+
+                {# Champ Budget #}
+                <div class="form-group row">
+                    {{ form_label(form.budget, 'Budget', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.budget, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le budget'}}) }}
+                        <small class="form-text text-muted">Le budget doit être un nombre positif ou zéro.</small>
+                    </div>
+                </div>
+
+                {# Champ Lieu #}
+                <div class="form-group row">
+                    {{ form_label(form.lieu, 'Lieu', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.lieu, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le lieu de travail'}}) }}
+                        <small class="form-text text-muted">Maximum 255 caractères.</small>
+                    </div>
+                </div>
+
+                
+
+                {# Champ Statut #}
+                <div class="form-group row">
+                    {{ form_label(form.statut, 'Statut', {'label_attr': {'class': 'col-sm-2 col-form-label'}}) }}
+                    <div class="col-sm-10">
+                        {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                </div>
+
+            
+
+                {# Boutons de soumission #}
+                <div class="form-group row">
+                    <div class="col-sm-10 offset-sm-2">
+                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                        <a href="{{ path('app_emploi') }}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

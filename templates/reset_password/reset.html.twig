@@ -1,0 +1,232 @@
+
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #2a2f4f, #cd7f32);
+            font-family: 'Poppins', sans-serif;
+            padding: 0;
+            margin: 0;
+            overflow: hidden; /* Empêche le scroll inutile */
+        } 
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            max-width: 100%;
+            padding: 20px;
+        }
+
+        .reset-password-container {
+            display: flex;
+            width: 900px; /* Ajustement de la taille */
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+            position: relative; /* Correction du chevauchement */
+        }
+
+        /* Section Gauche */
+        .left-section {
+            width: 40%;
+            min-height: 100%;
+            background: url('https://source.unsplash.com/random/800x1200/?art,password') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .left-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(42, 47, 79, 0.85), rgba(205, 127, 50, 0.85));
+            z-index: 1;
+        }
+
+        .left-section .icon-container {
+            font-size: 64px;
+            color: white;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .left-section h2, .left-section p {
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Section Droite */
+        .right-section {
+            width: 60%;
+            padding: 50px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .reset-header {
+            margin-bottom: 30px;
+        }
+
+        .reset-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2a2f4f;
+            margin-bottom: 10px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .reset-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background: #cd7f32;
+            border-radius: 10px;
+        }
+
+        /* Formulaire */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .form-control:focus {
+            border-color: #cd7f32;
+            outline: none;
+            box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+            background: #fff;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #cd7f32;
+            color: white;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #2a2f4f;
+            box-shadow: 0 5px 15px rgba(205, 127, 50, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .reset-password-container {
+                flex-direction: column;
+                width: 100%;
+                height: auto;
+            }
+
+            .left-section, .right-section {
+                width: 100%;
+                padding: 30px;
+            }
+
+            .left-section {
+                height: 200px; /* Réduction de la hauteur */
+                background-size: cover;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="reset-password-container">
+        <!-- Section Gauche -->
+        <div class="left-section">
+            <div class="icon-container">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h2>Sécurisez votre compte</h2>
+            <p>Créez un nouveau mot de passe fort pour protéger votre compte.</p>
+        </div>
+
+        <!-- Section Droite -->
+        <div class="right-section">
+            <div class="reset-header">
+                <h2>Nouveau mot de passe</h2>
+            </div>
+
+            {{ form_start(resetForm) }}
+                <div class="form-group">
+                    {{ form_label(resetForm.plainPassword.first, 'Nouveau mot de passe') }}
+                    {{ form_widget(resetForm.plainPassword.first, { 'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nouveau mot de passe'} }) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(resetForm.plainPassword.second, 'Confirmer le mot de passe') }}
+                    {{ form_widget(resetForm.plainPassword.second, { 'attr': {'class': 'form-control', 'placeholder': 'Confirmez votre nouveau mot de passe'} }) }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check-circle"></i>
+                    Enregistrer mon nouveau mot de passe
+                </button>
+            {{ form_end(resetForm) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

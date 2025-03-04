@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Offres d'Emploi{% endblock %}
+
+{% block body %}
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Mes Offres d'Emploi</h1>
+            </div>
+        </div>
+    </div> 
+
+    <div class="container mt-5">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="row">
+            {% for emploi in emplois %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ emploi.titre }}</h5>
+                            <p class="card-text">{{ emploi.description|slice(0, 150) }}...</p>
+                            <p>
+                                <strong>Statut:</strong> 
+                                <span class="badge bg-{{ emploi.statut == 'Ouvert' ? 'success' : 'secondary' }}">
+                                    {{ emploi.statut }}
+                                </span>
+                            </p>
+                            <div class="btn-group">
+                                <a href="{{ path('emploi_show', {'id': emploi.id}) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                <a href="{{ path('job_applications', {'id': emploi.id}) }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-users"></i> Candidatures
+                                </a>
+                                <a href="{{ path('emploi_edit', {'id': emploi.id}) }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Vous n'avez pas encore publié d'offres d'emploi.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{{ path('emploi_add') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Publier une nouvelle offre
+            </a>
+        </div>
+    </div>
+{% endblock %}

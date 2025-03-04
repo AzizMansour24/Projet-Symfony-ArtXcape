@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+            <div class="container">
+                <div class="breadcumb-content">
+                    <h1 class="breadcumb-title">Transcriptions</h1>
+                </div>
+                <ul class="breadcumb-menu">
+                    <li><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="active">Transcriptions</li>
+                </ul>                
+            </div>
+        </div>
+
+<section class="space-top space-extra-bottom">
+    <div class="container">  
+        {# Ajout des messages flash #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nom du fichier</th>
+                                <th>Date de création</th>
+                                <th>Taille</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transcription in transcriptions %}
+                                <tr>
+                                    <td>{{ transcription.name }}</td>
+                                    <td>{{ transcription.date|date('d/m/Y H:i:s') }}</td>
+                                    <td>{{ (transcription.size / 1024)|number_format(2) }} KB</td>
+                                    <td>
+                                        <a href="{{ transcription.path }}" class="btn btn-sm btn-info" download>
+                                            <i class="fas fa-download"></i> Télécharger
+                                        </a>
+                                        <a href="{{ path('formation_generate_summary', {'filename': transcription.name}) }}" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="fas fa-file-alt"></i> Générer Résumé
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Aucune transcription disponible</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

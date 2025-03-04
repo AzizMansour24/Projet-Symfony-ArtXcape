@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <h1 class="mb-4">Forum</h1>
+
+    {# Flash messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# New Post Form at the top #}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Create a New Post</h3>
+        </div>
+        <div class="card-body">
+            {{ form_start(postForm, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                <div class="mb-3">
+                    {{ form_label(postForm.title) }}
+                    {{ form_widget(postForm.title, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(postForm.title) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(postForm.content) }}
+                    {{ form_widget(postForm.content, {'attr': {'class': 'form-control', 'rows': 5}}) }}
+                    {{ form_errors(postForm.content) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(postForm.imageFile) }}
+                    {{ form_widget(postForm.imageFile, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(postForm.imageFile) }}
+                </div>
+                {{ form_widget(postForm.save, {'attr': {'class': 'btn btn-primary'}}) }}
+            {{ form_end(postForm) }}
+        </div>
+    </div>
+
+    {# Display all posts (each in its own row/card) #}
+    {% for post in posts %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">
+                <h4>{{ post.title }}</h4>
+                <small>by {{ post.author.nom ~ ' ' ~ post.author.prenom }} on {{ post.createdAt|date('d M Y H:i') }}</small>
+            </div>
+            <div class="card-body">
+                {% if post.image %}
+                    <img src="{{ asset('uploads/post_images/' ~ post.image) }}" class="img-fluid mb-3" alt="Post image">
+                {% endif %}
+                <p>{{ post.content }}</p>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                    {# Like button. Using AJAX (you can attach JS to .like-btn) #}
+                    <button class="btn btn-sm btn-outline-primary like-btn" data-post-id="{{ post.id }}">
+                        Like (<span class="like-count">{{ post.likes|length }}</span>)
+                    </button>
+                    {# Comment button toggles comment area #}
+                    <button class="btn btn-sm btn-outline-secondary ms-2 comment-toggle" data-post-id="{{ post.id }}">
+                        Comment ({{ post.comments|length }})
+                    </button>
+                </div>
+            </div>
+            {# Comment area (initially hidden) #}
+            <div class="card-body comment-area" id="comment-area-{{ post.id }}" style="display: none;">
+                {# Display existing comments #}
+                {% for comment in post.comments %}
+                    <div class="mb-2 border-bottom pb-2">
+                        <strong>{{ comment.author.nom ~ ' ' ~ comment.author.prenom }}</strong>
+                        <small class="text-muted">{{ comment.createdAt|date('d M Y H:i') }}</small>
+                        <p class="mb-0">{{ comment.content }}</p>
+                    </div>
+                {% else %}
+                    <p>No comments yet.</p>
+                {% endfor %}
+
+                {# Comment form (submits to the forum_comment route) #}
+                <form method="post" action="{{ path('forum_comment', {'id': post.id}) }}">
+                    <div class="mb-2">
+                       {{ form_widget(commentForm.content,{
+                            'attr':{
+                                'class':'form-control',
+                                'rows':3,
+                                'placeholder': 'Write a comment ...'
+                            }
+                        }) }}
+                       {{ form_errors(commentForm.content) }}
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-sm">Add Comment</button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <p>No posts available.</p>
+    {% endfor %}
+</div>
+
+{# JavaScript to handle like and toggle comment area. In a real project, you might move this into your JS files. #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Toggle comment area
+    document.querySelectorAll('.comment-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var postId = this.getAttribute('data-post-id');
+            var commentArea = document.getElementById('comment-area-' + postId);
+            commentArea.style.display = commentArea.style.display === 'none' ? 'block' : 'none';
+        });
+    });
+
+    // Handle like button click via AJAX
+    document.querySelectorAll('.like-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var postId = this.getAttribute('data-post-id');
+            var likeCountEl = this.querySelector('.like-count');
+            fetch('/forum/' + postId + '/like', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token("authenticate") }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.error) {
+                    alert(data.error);
+                } else {
+                    likeCountEl.textContent = data.likeCount;
+                }
+            })
+            .catch(err => console.error(err));
+        });
+    });
+});
+</script>
+{% endblock %}

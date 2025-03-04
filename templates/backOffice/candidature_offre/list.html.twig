@@ -1,0 +1,247 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Liste des Candidatures aux Offres{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .btn-action {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-view {
+            background-color: #6f42c1;
+            color: white;
+            border: none;
+        }
+        .btn-view:hover {
+            background-color: #5e35b1;
+            color: white;
+        }
+        .btn-accept {
+            background-color: #198754;
+            color: white;
+            border: none;
+        }
+        .btn-accept:hover {
+            background-color: #157347;
+            color: white;
+        }
+        .btn-reject {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .btn-reject:hover {
+            background-color: #c82333;
+            color: white;
+        }
+        .actions-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 500;
+        }
+        .emploi-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .emploi-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .emploi-location {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .alert {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        
+        .alert-info {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 1.25rem;
+        }
+
+        .alert i {
+            font-size: 1.1em;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid px-4">
+        {# Messages Flash #}
+        <div class="messages mb-4">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {% if label == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elseif label == 'error' or label == 'danger' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elseif label == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elseif label == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+<br><br><br>
+        <h1 class="mt-4 mb-4">
+            <i class="fas fa-briefcase me-2"></i>Candidatures aux Offres d'Emploi
+        </h1>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="fas fa-list me-1"></i> Candidatures par Offre
+            </div>
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Candidat</th>
+                            <th>Offre d'emploi</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidatureOffre in candidatureOffres %}
+                            <tr>
+                                <td>{{ candidatureOffre.dateCandidature|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <strong>{{ candidatureOffre.candidat.nom }} {{ candidatureOffre.candidat.prenom }}</strong>
+                                        <a href="mailto:{{ candidatureOffre.candidat.email }}" 
+                                           class="text-decoration-none text-muted small">
+                                            <i class="fas fa-envelope me-1"></i>
+                                            {{ candidatureOffre.candidat.email }}
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="emploi-info">
+                                        <span class="emploi-title">{{ candidatureOffre.emploi.titre }}</span>
+                                        <div class="emploi-details">
+                                            <span class="emploi-location">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                {{ candidatureOffre.emploi.lieu }}
+                                            </span>
+                                            <span class="emploi-location">
+                                                <i class="fas fa-money-bill-wave me-1"></i>
+                                                {{ candidatureOffre.emploi.budget }} DT
+                                            </span>
+                                            {% if candidatureOffre.emploi.description %}
+                                                <div class="emploi-description text-muted small mt-1">
+                                                    {{ candidatureOffre.emploi.description|slice(0, 100) }}...
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if candidatureOffre.statut == 'En attente' %}bg-warning
+                                                      {% elseif candidatureOffre.statut == 'Acceptée' %}bg-success
+                                                      {% else %}bg-danger{% endif %}">
+                                        <i class="fas {% if candidatureOffre.statut == 'En attente' %}fa-clock
+                                                     {% elseif candidatureOffre.statut == 'Acceptée' %}fa-check-circle
+                                                     {% else %}fa-times-circle{% endif %} me-1"></i>
+                                        {{ candidatureOffre.statut }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="actions-group">
+                                        <a href="{{ path('backoffice_candidature_offre_show', {'id': candidatureOffre.id}) }}" 
+                                           class="btn btn-action btn-view btn-sm"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Détails
+                                        </a>
+                                        
+                                        {% if candidatureOffre.statut == 'En attente' %}
+                                            <button type="button" 
+                                                    class="btn btn-action btn-accept btn-sm" 
+                                                    onclick="updateStatus({{ candidatureOffre.id }}, 'Acceptée')"
+                                                    title="Accepter la candidature">
+                                                <i class="fas fa-check me-1"></i>
+                                                Accepter
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-action btn-reject btn-sm" 
+                                                    onclick="updateStatus({{ candidatureOffre.id }}, 'Refusée')"
+                                                    title="Refuser la candidature">
+                                                <i class="fas fa-times me-1"></i>
+                                                Refuser
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-3 d-block"></i>
+                                    Aucune candidature trouvée
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function updateStatus(id, status) {
+            if (confirm('Êtes-vous sûr de vouloir ' + (status === 'Acceptée' ? 'accepter' : 'refuser') + ' cette candidature ?')) {
+                fetch(`/backoffice/candidature-offre/${id}/update-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `status=${status}`
+                }).then(() => window.location.reload());
+            }
+        }
+    </script>
+{% endblock %}

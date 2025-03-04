@@ -1,0 +1,190 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Mes Ventes</h1>
+            </div>
+            <ul class="breadcumb-menu">
+                <li><a href="{{ path('ma_galerie', {'id': app.user.id}) }}">Ma Galerie</a></li>
+                <li class="active">Mes Ventes</li>
+            </ul>                
+        </div>
+    </div>
+ 
+    <div class="space-top space-extra-bottom">
+        <div class="container">
+            <!-- Résumé des ventes -->
+            <div class="sales-summary mb-5">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <div class="summary-info">
+                                <h3>Total des ventes</h3>
+                                <p class="amount">{{ totalVentes|number_format(2, ',', ' ') }} Dt</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <i class="fas fa-box"></i>
+                            <div class="summary-info">
+                                <h3>Articles vendus</h3>
+                                <p class="amount">{{ nombreArticlesVendus }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des ventes -->
+            <div class="sales-list">
+                <h2 class="section-title mb-4">Historique des ventes</h2>
+                {% if ventes|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>N° Commande</th>
+                                    <th>Article</th>
+                                    <th>Client</th>
+                                    <th>Quantité</th>
+                                    <th>Prix unitaire</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vente in ventes %}
+                                    <tr>
+                                        <td>{{ vente.dateCommande|date('d/m/Y H:i') }}</td>
+                                        <td>{{ vente.numero }}</td>
+                                        <td>{{ vente.article.titre }}</td>
+                                        <td>{{ vente.user.nom }} {{ vente.user.prenom }}</td>
+                                        <td>{{ vente.quantite }}</td>
+                                        <td>{{ vente.prixUnitaire|number_format(2, ',', ' ') }} Dt</td>
+                                        <td>{{ vente.total|number_format(2, ',', ' ') }} Dt</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-sales-message text-center">
+                        <i class="fas fa-store mb-3"></i>
+                        <h4>Aucune vente pour le moment</h4>
+                        <p>Vos ventes apparaîtront ici une fois que vous aurez vendu des articles.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .sales-summary {
+        margin-bottom: 40px;
+    }
+
+    .summary-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .summary-card i {
+        font-size: 2.5rem;
+        color: #ff8f00;
+        background: rgba(255, 143, 0, 0.1);
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .summary-info h3 {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .amount {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+    }
+
+    .section-title {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(45deg, #ff8f00, #ff6f00);
+        border-radius: 3px;
+    }
+
+    .table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        border: none;
+        padding: 15px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .table tbody td {
+        padding: 15px;
+        border-top: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    .no-sales-message {
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .no-sales-message i {
+        font-size: 3rem;
+        color: #ff8f00;
+        display: block;
+    }
+
+    .no-sales-message h4 {
+        color: #333;
+        margin: 15px 0;
+    }
+
+    .no-sales-message p {
+        color: #666;
+        margin: 0;
+    }
+    </style>
+{% endblock %} 

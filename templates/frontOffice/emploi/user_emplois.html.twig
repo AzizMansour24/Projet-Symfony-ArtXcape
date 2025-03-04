@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Offres d'Emploi de {{ user.nom }}{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center fw-bold text-dark">Offres d'Emploi de {{ user.nom }}</h1>
+
+        {% if emplois is empty %}
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle"></i> Cet utilisateur n'a posté aucune offre d'emploi pour le moment.
+            </div>
+        {% else %} 
+            <div class="row">
+                {% for emploi in emplois %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 border shadow-sm hover-effect">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title fw-bold text-dark">{{ emploi.titre }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ emploi.lieu }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-secondary">{{ emploi.description|slice(0, 100) }}...</p>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                        <strong>Compétences Requises :</strong> 
+                                        <span class="text-muted">{{ emploi.competencesRequises|slice(0, 50) }}...</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Budget :</strong> 
+                                        <span class="text-success fw-bold">{{ emploi.budget ? emploi.budget ~ ' DT' : 'Non spécifié' }}</span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Statut :</strong> {{ emploi.statut }}
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Date de Publication :</strong> 
+                                        <span class="text-muted">{{ emploi.datePublication|date('d/m/Y H:i') }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ path('emploi_show2', {'id': emploi.id}) }}" class="btn btn-sm btn-outline-dark">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

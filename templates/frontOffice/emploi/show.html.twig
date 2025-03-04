@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de l'Offre d'Emploi - {{ emploi.titre }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+        <h1 class="mb-4 text-center fw-bold text-dark">Liste de l'Offre d'Emploi</h1>
+
+        <div class="row">
+    <div class="container mt-4">
+        <div class="card shadow-sm"> 
+            <div class="card-header bg-white border-bottom">
+                <h1 class="card-title h4 fw-bold text-dark mb-0">{{ emploi.titre }}</h1>
+                <p class="card-subtitle text-muted small mt-1">{{ emploi.lieu }}</p>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-3">Description du Poste</h2>
+                    <p class="text-secondary small">{{ emploi.description }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-3">Compétences Requises</h2>
+                    <ul class="list-unstyled">
+                        {% for competence in emploi.competencesRequises|split(',') %}
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-dark me-2 small"></i>
+                                <span class="small">{{ competence|trim }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="mb-4">
+                    <h2 class="h5 fw-bold text-dark mb-3">Informations Supplémentaires</h2>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-money-bill-wave text-dark me-2 small"></i>
+                                <strong class="small me-2">Budget :</strong>
+                                <span class="small">{{ emploi.budget ? emploi.budget ~ ' DT' : 'Non spécifié' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt text-dark me-2 small"></i>
+                                <strong class="small me-2">Lieu :</strong>
+                                <span class="small">{{ emploi.lieu ? emploi.lieu : 'À distance' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle text-dark me-2 small"></i>
+                                <strong class="small me-2">Statut :</strong>
+                                <span class="small">{{ emploi.statut }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-calendar-alt text-dark me-2 small"></i>
+                                <strong class="small me-2">Date de Publication :</strong>
+                                <span class="small">{{ emploi.datePublication|date('d/m/Y H:i') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ path('app_emploi') }}" class="btn btn-outline-dark btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+                    </a>
+                   <a href="{{ path('emploi_postuler', {'id': emploi.id}) }}" class="btn btn-dark btn-sm">
+    <i class="fas fa-paper-plane me-1"></i> Postuler
+</a>
+<div>
+                        {% if app.user and emploi.user == app.user %}
+                            <a href="{{ path('emploi_edit', {'id': emploi.id}) }}" class="btn btn-outline-dark btn-sm me-2">
+                                <i class="fas fa-edit me-1"></i> Modifier
+                            </a>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,460 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <br></br><br></br>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Liste Des Galeries</h1>
+        </div>  
+    </div>
+
+    <!-- Barre d'outils (recherche et boutons) -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInput2" class="form-control" placeholder="Rechercher une galerie...">
+            </div>
+        </div>
+        
+    </div>
+<div class="col-md-6 text-end">
+            <a href="/backAddgallerie" class="btn btn-inverse-primary btn-fw me-2">
+                <i class="mdi mdi-plus-circle me-2"></i>Ajouter Galerie
+            </a>
+            <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+                <i class="mdi mdi-file-pdf me-2"></i>Export PDF
+            </button>
+        </div>
+    <!-- Contenu principal -->
+    <div class="row">
+        <!-- Tableau des galeries -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="galleryTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0, 'galleryTable', 'number')">Id <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(1, 'galleryTable', 'text')">User_id <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(2, 'galleryTable', 'text')">Nom <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(3, 'galleryTable', 'date')">Date de Création <i class="mdi mdi-sort"></i></th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for galerie in liste %}
+                                <tr>
+                                    <td>{{ galerie.id }}</td>
+                                    <td>{{ galerie.user.nom }} ({{ galerie.user.id }})</td>
+                                    <td>{{ galerie.nom }}</td>
+                                    <td>{{ galerie.datecreation|date('Y-m-d') }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-link" data-toggle="modal" data-target="#descModal" 
+                                        onclick="showDescription('{{ galerie.id }}', `{{ galerie.description|e('js') }}`)">
+                                            Voir
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown">Action</button>
+                                            <div class="dropdown-menu">
+                                                <a class="btn btn-inverse-danger btn-fw" href="{{ path('delete_galerie', { 'id': galerie.id }) }}">Supprimer</a>
+                                                <a class="btn btn-inverse-primary btn-fw" href="{{ path('edit_galerie', { 'id': galerie.id }) }}">Modifier</a>
+                                                <a class="btn btn-inverse-secondary btn-fw" href="{{ path('back_showarticlebygallerie', { 'id': galerie.id }) }}">Voir Aricles</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button id="prevPage" class="btn btn-outline-secondary" onclick="prevPage()">Précédent</button>
+                        <span id="pagination-info" class="fw-bold"></span>
+                        <button id="nextPage" class="btn btn-outline-secondary" onclick="nextPage()">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .search-box {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    #searchInput2 {
+        padding-left: 35px;
+    }
+
+    .card {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: none;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group .dropdown-menu {
+        min-width: 150px;
+    }
+
+    .filtered-out {
+        display: none !important;
+    }
+</style>
+
+<!-- Scripts existants -->
+<script>
+let currentPage = 1;
+const rowsPerPage = 5;
+
+// Fonction de recherche
+document.getElementById('searchInput2').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#galleryTable tbody tr');
+    let hasResults = false;
+    let visibleRows = [];
+
+    // Réinitialiser l'affichage de toutes les lignes d'abord
+    tableRows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        if(text.includes(searchText)) {
+            row.classList.remove('filtered-out');
+            hasResults = true;
+            visibleRows.push(row);
+        } else {
+            row.classList.add('filtered-out');
+        }
+    });
+
+    // Gérer l'affichage du message "Aucun résultat"
+    let noResultsMsg = document.getElementById('noResultsMessage');
+    if (!noResultsMsg) {
+        noResultsMsg = document.createElement('div');
+        noResultsMsg.id = 'noResultsMessage';
+        noResultsMsg.className = 'alert alert-info mt-3 text-center';
+        noResultsMsg.textContent = 'Aucune galerie trouvée';
+        document.querySelector('.table-responsive').insertAdjacentElement('afterend', noResultsMsg);
+    }
+    
+    noResultsMsg.style.display = hasResults ? 'none' : 'block';
+
+    // Réinitialiser la pagination et l'appliquer aux résultats filtrés
+    currentPage = 1;
+    paginateTable();
+});
+
+// Activer/désactiver les boutons de pagination
+function updatePaginationButtons() {
+    const table = document.getElementById("galleryTable");
+    const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+    const visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+    document.getElementById("prevPage").disabled = currentPage <= 1;
+    document.getElementById("nextPage").disabled = currentPage >= totalPages;
+}
+
+function paginateTable() {
+    let table = document.getElementById("galleryTable");
+    let tbody = table.getElementsByTagName("tbody")[0];
+    let rows = tbody.getElementsByTagName("tr");
+    let visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    let totalRows = visibleRows.length;
+    let totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    // Masquer d'abord toutes les lignes non filtrées
+    visibleRows.forEach(row => row.style.display = "none");
+
+    // Afficher uniquement les lignes de la page actuelle
+    let start = (currentPage - 1) * rowsPerPage;
+    let end = start + rowsPerPage;
+    for (let i = start; i < end && i < totalRows; i++) {
+        visibleRows[i].style.display = "";
+    }
+
+    // Mise à jour des boutons de pagination
+    document.getElementById("pagination-info").textContent = `Page ${totalPages > 0 ? currentPage : 0} / ${totalPages}`;
+    updatePaginationButtons();
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        paginateTable();
+    }
+}
+
+function nextPage() {
+    let table = document.getElementById("galleryTable");
+    let rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+    let visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    let totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        paginateTable();
+    }
+}
+
+// Style pour la recherche et la pagination
+document.head.insertAdjacentHTML('beforeend', `
+    <style>
+        #searchInput2 {
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        #searchInput2:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        #noResultsMessage {
+            display: none;
+            margin-top: 15px;
+        }
+        .filtered-out {
+            display: none !important;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+`);
+
+// Initialiser la pagination au chargement
+document.addEventListener("DOMContentLoaded", paginateTable);
+</script>
+
+<!-- Script pour l'export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    // Sauvegarder l'état actuel de la pagination
+    const currentPageBackup = currentPage;
+    
+    // Afficher temporairement toutes les lignes
+    const rows = document.querySelectorAll('#galleryTable tbody tr');
+    const visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    visibleRows.forEach(row => row.style.display = '');
+
+    const table = document.getElementById("galleryTable");
+    const today = new Date();
+
+    // Créer un conteneur pour le PDF avec en-tête
+    const pdfContainer = document.createElement('div');
+    pdfContainer.innerHTML = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #333; margin-bottom: 10px;">Liste des Galeries</h1>
+                <p style="color: #666;">Généré le ${today.toLocaleDateString('fr-FR')}</p>
+                <hr style="border: 1px solid #eee; margin: 20px 0;">
+            </div>
+            ${table.outerHTML}
+            <div style="margin-top: 20px; text-align: right; font-size: 12px; color: #666;">
+                <p>Document généré automatiquement</p>
+            </div>
+        </div>
+    `;
+
+    // Appliquer des styles au tableau
+    const tableElement = pdfContainer.querySelector('table');
+    tableElement.style.width = '100%';
+    tableElement.style.borderCollapse = 'collapse';
+    tableElement.style.marginBottom = '20px';
+
+    // Masquer la colonne Actions
+    let columnsToHide = [5]; // Index de la colonne Actions
+    let tableRows = tableElement.getElementsByTagName("tr");
+
+    Array.from(tableRows).forEach((row, index) => {
+        let cells = row.getElementsByTagName(index === 0 ? "th" : "td");
+        Array.from(cells).forEach((cell, cellIndex) => {
+            if (columnsToHide.includes(cellIndex)) {
+                cell.style.display = 'none';
+            } else {
+                cell.style.padding = '8px 12px';
+                cell.style.border = '1px solid #ddd';
+                if (index === 0) {
+                    cell.style.backgroundColor = '#f8f9fa';
+                    cell.style.color = '#333';
+                    cell.style.fontWeight = 'bold';
+                }
+            }
+        });
+    });
+
+    // Configuration des options du PDF
+    const opt = {
+        margin: [0.5, 0.5],
+        filename: `galeries-${today.toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false
+        },
+        jsPDF: { 
+            unit: 'in', 
+            format: 'a4', 
+            orientation: 'landscape',
+            compress: true
+        }
+    };
+
+    // Désactiver le bouton et afficher l'animation de chargement
+    const button = document.getElementById('exportPdfBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Génération en cours...';
+    button.disabled = true;
+
+    // Générer le PDF
+    html2pdf().set(opt).from(pdfContainer).save()
+    .then(() => {
+        // Restaurer l'affichage de la pagination
+        currentPage = currentPageBackup;
+        paginateTable();
+        
+        button.innerHTML = originalText;
+        button.disabled = false;
+    })
+    .catch(error => {
+        console.error('Erreur lors de la génération du PDF:', error);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Ne pas afficher l'alerte si le PDF a été généré avec succès
+        if (!document.querySelector('iframe[src^="blob:"]')) {
+            alert('Une erreur est survenue lors de la création du PDF.');
+        }
+        
+        // Restaurer l'affichage de la pagination
+        currentPage = currentPageBackup;
+        paginateTable();
+    });
+}
+
+// Attacher l'événement au bouton
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+});
+</script>
+
+<!-- Modal pour afficher la description -->
+<div class="modal fade" id="descModal" tabindex="-1" role="dialog" aria-labelledby="descModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="descModalLabel">Description de la Galerie</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modalDescription"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ajouter cette fonction JavaScript avant la fermeture du bloc body -->
+<script>
+function showDescription(id, description) {
+    document.getElementById("modalDescription").innerText = description;
+    $('#descModal').modal('show'); // Afficher le modal
+}
+</script>
+
+<!-- Ajouter ce script avant la fermeture du bloc body -->
+<script>
+let sortDirection = {};
+
+function sortTable(columnIndex, tableId, type) {
+    const table = document.getElementById(tableId);
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    // Inverser la direction du tri pour cette colonne
+    sortDirection[columnIndex] = !sortDirection[columnIndex];
+    
+    // Fonction de comparaison selon le type
+    const compare = (a, b) => {
+        let valueA = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+        let valueB = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+        
+        switch(type) {
+            case 'number':
+                valueA = parseFloat(valueA) || 0;
+                valueB = parseFloat(valueB) || 0;
+                break;
+            case 'date':
+                valueA = new Date(valueA);
+                valueB = new Date(valueB);
+                break;
+            default: // 'text'
+                valueA = valueA.toLowerCase();
+                valueB = valueB.toLowerCase();
+        }
+        
+        if (valueA < valueB) return sortDirection[columnIndex] ? -1 : 1;
+        if (valueA > valueB) return sortDirection[columnIndex] ? 1 : -1;
+        return 0;
+    };
+    
+    // Trier les lignes
+    rows.sort(compare);
+    
+    // Réinsérer les lignes triées
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Mettre à jour la pagination
+    currentPage = 1;
+    updatePagination();
+}
+
+// Ajouter des styles pour les en-têtes triables
+document.head.insertAdjacentHTML('beforeend', `
+    <style>
+        th[onclick] {
+            cursor: pointer;
+            user-select: none;
+        }
+        th[onclick]:hover {
+            background-color: #e9ecef;
+        }
+        th[onclick] i {
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+    </style>
+`);
+</script>
+
+{% endblock %}

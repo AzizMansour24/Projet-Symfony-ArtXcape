@@ -1,0 +1,292 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <br></br><br></br>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Gestion des Commandes</h1>
+        </div>
+    </div>
+
+    <!-- Barre d'outils (recherche et boutons) -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInput4" class="form-control" placeholder="Rechercher une commande...">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+                <i class="mdi mdi-file-pdf me-2"></i>Export PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Total des ventes Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Total des Ventes</h6>
+        </div>
+        <div class="card-body">
+            <h2 class="text-success">{{ totalVentes|number_format(2, '.', ',') }} Dt</h2>
+        </div>
+    </div>
+
+    <!-- Tableau des commandes -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'dataTable', 'text')">N° Commande <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(1, 'dataTable', 'text')">Client <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(2, 'dataTable', 'text')">Article <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(3, 'dataTable', 'date')">Date <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(4, 'dataTable', 'number')">Quantité <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(5, 'dataTable', 'number')">Prix Unitaire <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(6, 'dataTable', 'number')">Total <i class="mdi mdi-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for commande in commandes %}
+                        <tr>
+                            <td>{{ commande.numero }}</td>
+                            <td>{{ commande.user.nom }} {{ commande.user.prenom }}</td>
+                            <td>{{ commande.article.titre }}</td>
+                            <td>{{ commande.dateCommande|date('d/m/Y H:i') }}</td>
+                            <td>{{ commande.quantite }}</td>
+                            <td>{{ commande.prixUnitaire }} Dt</td>
+                            <td>{{ commande.total }} Dt</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button id="prevPage" class="btn btn-outline-secondary">Précédent</button>
+                <span id="pagination-info" class="fw-bold"></span>
+                <button id="nextPage" class="btn btn-outline-secondary">Suivant</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .page-title {
+        color: #333;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    #searchInput4 {
+        padding-left: 35px;
+    }
+
+    .card {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: none;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .filtered-out {
+        display: none !important;
+    }
+</style>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+let currentPage = 1;
+const rowsPerPage = 5;
+
+// Fonction de recherche
+document.getElementById('searchInput4').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#dataTable tbody tr');
+    let hasResults = false;
+    let visibleRows = [];
+
+    tableRows.forEach(row => {
+        let cells = Array.from(row.getElementsByTagName('td'));
+        let rowText = cells.map(cell => cell.textContent.toLowerCase()).join(' ');
+        
+        if(rowText.includes(searchText)) {
+            row.classList.remove('filtered-out');
+            hasResults = true;
+            visibleRows.push(row);
+        } else {
+            row.classList.add('filtered-out');
+        }
+    });
+
+    let noResultsMsg = document.getElementById('noResultsMessage');
+    if (!noResultsMsg) {
+        noResultsMsg = document.createElement('div');
+        noResultsMsg.id = 'noResultsMessage';
+        noResultsMsg.className = 'alert alert-info mt-3 text-center';
+        noResultsMsg.textContent = 'Aucune commande trouvée';
+        document.querySelector('.table-responsive').insertAdjacentElement('afterend', noResultsMsg);
+    }
+    
+    noResultsMsg.style.display = hasResults ? 'none' : 'block';
+    currentPage = 1;
+    updatePagination();
+});
+
+// Fonction de pagination
+function updatePagination() {
+    const table = document.getElementById("dataTable");
+    const tbody = table.getElementsByTagName("tbody")[0];
+    const rows = Array.from(tbody.getElementsByTagName("tr"));
+    const visibleRows = rows.filter(row => !row.classList.contains('filtered-out'));
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+
+    // Masquer toutes les lignes d'abord
+    visibleRows.forEach(row => row.style.display = "none");
+
+    // Afficher les lignes de la page actuelle
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = Math.min(start + rowsPerPage, visibleRows.length);
+    for (let i = start; i < end; i++) {
+        visibleRows[i].style.display = "";
+    }
+
+    // Mettre à jour l'information de pagination
+    document.getElementById("pagination-info").textContent = `Page ${currentPage} / ${totalPages || 1}`;
+    document.getElementById("prevPage").disabled = currentPage === 1;
+    document.getElementById("nextPage").disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// Gestionnaires d'événements pour la pagination
+document.getElementById("prevPage").addEventListener("click", function() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+});
+
+document.getElementById("nextPage").addEventListener("click", function() {
+    const visibleRows = Array.from(document.querySelectorAll('#dataTable tbody tr'))
+        .filter(row => !row.classList.contains('filtered-out'));
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+});
+
+// Fonction de tri
+let sortDirection = {};
+function sortTable(columnIndex, tableId, type) {
+    const table = document.getElementById(tableId);
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    // Inverser la direction du tri pour cette colonne
+    sortDirection[columnIndex] = !sortDirection[columnIndex];
+    
+    // Fonction de comparaison selon le type
+    const compare = (a, b) => {
+        let valueA = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+        let valueB = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+        
+        switch(type) {
+            case 'number':
+                valueA = parseFloat(valueA.replace(/[^\d.-]/g, '')) || 0;
+                valueB = parseFloat(valueB.replace(/[^\d.-]/g, '')) || 0;
+                break;
+            case 'date':
+                valueA = new Date(valueA.split('/').reverse().join('-'));
+                valueB = new Date(valueB.split('/').reverse().join('-'));
+                break;
+            default: // 'text'
+                valueA = valueA.toLowerCase();
+                valueB = valueB.toLowerCase();
+        }
+        
+        if (valueA < valueB) return sortDirection[columnIndex] ? -1 : 1;
+        if (valueA > valueB) return sortDirection[columnIndex] ? 1 : -1;
+        return 0;
+    };
+    
+    // Trier les lignes
+    rows.sort(compare);
+    
+    // Réinsérer les lignes triées
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Mettre à jour la pagination
+    currentPage = 1;
+    updatePagination();
+}
+
+// Export PDF
+function exportToPDF() {
+    const table = document.getElementById("dataTable");
+    const today = new Date();
+
+    const pdfContainer = document.createElement('div');
+    pdfContainer.innerHTML = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #333; margin-bottom: 10px;">Liste des Commandes</h1>
+                <p style="color: #666;">Généré le ${today.toLocaleDateString('fr-FR')}</p>
+                <hr style="border: 1px solid #eee; margin: 20px 0;">
+            </div>
+            ${table.outerHTML}
+            <div style="margin-top: 20px; text-align: right; font-size: 12px; color: #666;">
+                <p>Document généré automatiquement</p>
+            </div>
+        </div>
+    `;
+
+    // Configuration PDF
+    const opt = {
+        margin: [0.5, 0.5],
+        filename: `commandes-${today.toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    // Générer le PDF
+    html2pdf().set(opt).from(pdfContainer).save();
+}
+
+// Initialisation
+document.addEventListener("DOMContentLoaded", function() {
+    updatePagination();
+    document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+});
+</script>
+{% endblock %} 

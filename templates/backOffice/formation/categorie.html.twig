@@ -1,0 +1,540 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+<br><br><br>
+    <h2 class="card-title">Gestion des Catégories</h2>
+
+    <!-- Barre de recherche et bouton d'exportation -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInput2" class="form-control" placeholder="Rechercher une catégorie...">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+                <i class="mdi mdi-file-pdf me-2"></i> Export PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Table section -->
+    <div class="card mb-4">
+        <div class="card-body"> 
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="card-title mb-0">Liste des Catégories</h4>
+                <a href="#" class="btn btn-gradient-primary" data-toggle="modal" data-target="#addCategorieModal">
+                    <i class="mdi mdi-plus"></i> Nouvelle Catégorie
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="categoryTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0, 'categoryTable', 'number')">ID <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(1, 'categoryTable', 'text')">Nom <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(2, 'categoryTable', 'text')">Description <i class="mdi mdi-sort"></i></th>
+                            <th onclick="sortTable(3, 'categoryTable', 'date')">Date de création <i class="mdi mdi-sort"></i></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if categories is empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">Aucune catégorie n'a été trouvée</td>
+                            </tr>
+                        {% else %}
+                            {% for categorie in categories %}
+                                <tr>
+                                    <td>{{ categorie.id }}</td>
+                                    <td>{{ categorie.nom }}</td>
+                                    <td>
+                                        {% if categorie.description %}
+                                            {{ categorie.description|slice(0, 50) }}
+                                            {% if categorie.description|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Aucune description</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ categorie.dateCreation|date('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#viewModal{{ categorie.id }}">
+                                                    <i class="mdi mdi-eye text-info"></i> Voir détails
+                                                </a>
+                                                <a class="dropdown-item" href="{{ path('back_editcategorie', {'id': categorie.id}) }}">
+                                                    <i class="mdi mdi-pencil text-warning"></i> Modifier
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item text-danger" href="{{ path('back_deletecategorie', {'id': categorie.id}) }}" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?');">
+                                                    <i class="mdi mdi-delete"></i> Supprimer
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Modal for viewing category details -->
+                                        <div class="modal fade" id="viewModal{{ categorie.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Détails de la catégorie</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="card">
+                                                            <div class="card-body">
+                                                                <h4 class="card-title">{{ categorie.nom }}</h4>
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <p><strong>ID:</strong> {{ categorie.id }}</p>
+                                                                        <p><strong>Date de création:</strong> {{ categorie.dateCreation|date('d/m/Y') }}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mt-3">
+                                                                    <h5>Description:</h5>
+                                                                    <p>{{ categorie.description ?: 'Aucune description disponible' }}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <h4 class="card-title mt-4">Statistiques des Catégories</h4>
+    
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="font-weight-bold mb-0">{{ categories|length }}</h2>
+                            <h6 class="mb-0">Catégories</h6>
+                        </div>
+                        <div class="icon-shape">
+                            <i class="mdi mdi-folder-multiple mdi-36px"></i>
+                        </div>
+                    </div>
+                    <small>Total des catégories actives</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="font-weight-bold mb-0">{{ categoryStats|reduce((sum, stat) => sum + stat.count, 0) }}</h2>
+                            <h6 class="mb-0">Formations</h6>
+                        </div>
+                        <div class="icon-shape">
+                            <i class="mdi mdi-school mdi-36px"></i>
+                        </div>
+                    </div>
+                    <small>Nombre total de formations</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% set avg = categories|length > 0 ? (categoryStats|reduce((sum, stat) => sum + stat.count, 0) / categories|length) : 0 %}
+                            <h2 class="font-weight-bold mb-0">{{ avg|number_format(1) }}</h2>
+                            <h6 class="mb-0">Moyenne</h6>
+                        </div>
+                        <div class="icon-shape">
+                            <i class="mdi mdi-chart-line mdi-36px"></i>
+                        </div>
+                    </div>
+                    <small>Formations par catégorie</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card bg-gradient-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            {% set mostUsed = categoryStats|sort((a, b) => b.count <=> a.count)|first %}
+                            <h2 class="font-weight-bold mb-0">{{ mostUsed ? mostUsed.count : 0 }}</h2>
+                            <h6 class="mb-0">Max Formations</h6>
+                        </div>
+                        <div class="icon-shape">
+                            <i class="mdi mdi-trophy mdi-36px"></i>
+                        </div>
+                    </div>
+                    <small>{{ mostUsed ? mostUsed.name : 'Aucune catégorie' }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Details -->
+    <div class="row">
+        <!-- Chart Section -->
+        <div class="col-lg-8 grid-margin">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="card-title mb-0">
+                            <i class="mdi mdi-chart-bar"></i> Distribution des Formations
+                        </h4>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary active" id="viewBar">
+                                <i class="mdi mdi-chart-bar"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="viewPie">
+                                <i class="mdi mdi-chart-pie"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:400px;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="col-lg-4 grid-margin">
+            <!-- Top Categories -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="mdi mdi-star"></i> Top Catégories
+                    </h4>
+                    {% set sortedStats = categoryStats|sort((a, b) => b.count <=> a.count) %}
+                    {% for stat in sortedStats|slice(0, 3) %}
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">{{ stat.name }}</h6>
+                                <span class="badge badge-primary">{{ stat.count }} formations</span>
+                            </div>
+                            {% set percentage = categories|length > 0 ? (stat.count / (categoryStats|reduce((sum, s) => sum + s.count, 0)) * 100) : 0 %}
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-gradient-primary" 
+                                     role="progressbar" 
+                                     style="width: {{ percentage }}%"
+                                     aria-valuenow="{{ percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ percentage|number_format(1) }}% du total</small>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucune donnée disponible</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="mdi mdi-clock-outline"></i> Activité Récente
+                    </h4>
+                    <div class="timeline">
+                        {% set recentCategories = categories|sort((a, b) => b.dateCreation <=> a.dateCreation)|slice(0, 4) %}
+                        {% for categorie in recentCategories %}
+                            <div class="timeline-item">
+                                <div class="timeline-item-content">
+                                    <div class="timeline-item-marker"></div>
+                                    <div class="timeline-item-wrapper">
+                                        <h6 class="mb-1">{{ categorie.nom }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="mdi mdi-calendar"></i>
+                                                {{ categorie.dateCreation|date('d/m/Y') }}
+                                            </small>
+                                            {% set formationCount = categoryStats|filter(stat => stat.name == categorie.nom)|first %}
+                                            <span class="badge badge-soft-info">
+                                                {{ formationCount ? formationCount.count : 0 }} formation(s)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucune activité récente</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for adding a new category -->
+<div class="modal fade" id="addCategorieModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-folder-plus"></i> 
+                    Ajouter une nouvelle catégorie
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'class': 'forms-sample'}}) }}
+                            <div class="form-group">
+                                {{ form_label(form.nom, null, {'label_attr': {'class': 'font-weight-medium'}}) }}
+                                {{ form_widget(form.nom) }}
+                                {{ form_errors(form.nom, {'attr': {'class': 'text-danger'}}) }}
+                                <small class="form-text text-muted">
+                                    Choisissez un nom clair et descriptif pour la catégorie.
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form_label(form.description, null, {'label_attr': {'class': 'font-weight-medium'}}) }}
+                                {{ form_widget(form.description) }}
+                                {{ form_errors(form.description, {'attr': {'class': 'text-danger'}}) }}
+                                <small class="form-text text-muted">
+                                    Une brève description aidera à mieux comprendre le but de cette catégorie.
+                                </small>
+                            </div>
+                            
+                            <div class="form-group">
+                                {{ form_label(form.dateCreation, null, {'label_attr': {'class': 'font-weight-medium'}}) }}
+                                {{ form_widget(form.dateCreation) }}
+                                {{ form_errors(form.dateCreation, {'attr': {'class': 'text-danger'}}) }}
+                            </div>
+
+                            <div class="modal-footer px-0 pb-0">
+                                <button type="button" class="btn btn-light btn-lg" data-dismiss="modal">
+                                    <i class="mdi mdi-close"></i> Annuler
+                                </button>
+                                {{ form_widget(form.save) }}
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+            <i class="mdi mdi-check-circle-outline"></i>
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<style>
+.icon-shape {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-item-marker {
+    position: absolute;
+    left: -1.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #4B49AC;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 3px rgba(75, 73, 172, 0.2);
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -1.34rem;
+    top: 12px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(75, 73, 172, 0.2);
+}
+
+.badge-soft-info {
+    color: #4B49AC;
+    background-color: rgba(75, 73, 172, 0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #4B49AC, #98BDFF);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #248A3D, #86EFAC);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #0EA5E9, #7DD3FC);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #EAB308, #FDE047);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryData = {{ categoryStats|json_encode|raw }};
+    let currentChart = null;
+    
+    const createBarChart = () => {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(75, 73, 172, 0.8)');
+        gradient.addColorStop(1, 'rgba(75, 73, 172, 0.2)');
+
+        return new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categoryData.map(item => item.name),
+                datasets: [{
+                    label: 'Formations',
+                    data: categoryData.map(item => item.count),
+                    backgroundColor: gradient,
+                    borderColor: '#4B49AC',
+                    borderWidth: 1,
+                    borderRadius: 5,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+
+    const createPieChart = () => {
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.map(item => item.name),
+                datasets: [{
+                    data: categoryData.map(item => item.count),
+                    backgroundColor: [
+                        '#4B49AC',
+                        '#248A3D',
+                        '#0EA5E9',
+                        '#EAB308',
+                        '#EC4899',
+                        '#8B5CF6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    };
+
+    // Initial chart
+    currentChart = createBarChart();
+
+    // Chart type toggle
+    document.getElementById('viewBar').addEventListener('click', function() {
+        this.classList.add('active');
+        document.getElementById('viewPie').classList.remove('active');
+        currentChart.destroy();
+        currentChart = createBarChart();
+    });
+
+    document.getElementById('viewPie').addEventListener('click', function() {
+        this.classList.add('active');
+        document.getElementById('viewBar').classList.remove('active');
+        currentChart.destroy();
+        currentChart = createPieChart();
+    });
+});
+
+document.getElementById('searchInput2').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#categoryTable tbody tr');
+    tableRows.forEach(row => {
+        let cells = Array.from(row.getElementsByTagName('td'));
+        let rowText = cells.map(cell => cell.textContent.toLowerCase()).join(' ');
+        row.style.display = rowText.includes(searchText) ? '' : 'none';
+    });
+});
+
+document.getElementById('exportPdfBtn').addEventListener('click', function() {
+    const element = document.getElementById('categoryTable');
+    const pdfContainer = document.createElement('div');
+    pdfContainer.innerHTML = `
+        <h1>Liste des Catégories</h1>
+        <table>${element.innerHTML}</table>
+    `;
+    html2pdf().from(pdfContainer).save('categories.pdf');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion | ArtXcape</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ asset('assets/frontOffice/newimg/logoicon.png') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2a2f4f, #cd7f32);
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 1000px;
+            max-width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Section Gauche - Image */
+        .left-section {
+            width: 40%;
+            position: relative;
+            background: url('https://source.unsplash.com/random/800x1200/?art,escape') center/cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            z-index: 2;
+        }
+
+        .left-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(42, 47, 79, 0.85), rgba(205, 127, 50, 0.85));
+            z-index: -1;
+        }
+
+        .welcome-text {
+            color: #fff;
+            z-index: 3;
+        }
+
+        .welcome-text h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .welcome-text p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Section Droite - Formulaire */
+        .right-section {
+            width: 60%;
+            padding: 40px 50px;
+            background: #fff;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h3 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2a2f4f;
+            margin-bottom: 10px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .login-header h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background: #cd7f32;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .form-group input:focus {
+            border-color: #cd7f32;
+            outline: none;
+            box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+            background: #fff;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .forgot-password {
+            color: #cd7f32;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .forgot-password:hover {
+            color: #2a2f4f;
+            text-decoration: underline;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .btn-login {
+            background: #cd7f32;
+            color: white;
+        }
+
+        .btn-login:hover {
+            background: #2a2f4f;
+            box-shadow: 0 5px 15px rgba(205, 127, 50, 0.3);
+        }
+
+        .btn-register {
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .btn-register:hover {
+            background: #e0e0e0;
+            color: #2a2f4f;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-danger {
+            background: #ffe5e5;
+            color: #e74c3c;
+            border: 1px solid #ffcccc;
+        }
+
+        .alert-info {
+            background: #e5f6fd;
+            color: #3498db;
+            border: 1px solid #bde9ff;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-section, .right-section {
+                width: 100%;
+            }
+
+            .left-section {
+                padding: 40px 20px;
+            }
+
+            .right-section {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Section Gauche - Image et texte de bienvenue -->
+        <div class="left-section">
+            <div class="welcome-text">
+                <h2>Bienvenue sur ArtXcape</h2>
+                <p>Connectez-vous pour accéder à votre espace personnel et découvrir notre univers artistique unique.</p>
+            </div>
+        </div>
+
+        <!-- Section Droite - Formulaire de connexion -->
+        <div class="right-section">
+            <div class="login-header">
+                <h3>Connexion</h3>
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="alert alert-info">
+                    Vous êtes connecté en tant que <strong>{{ app.user.userIdentifier }}</strong>,
+                    <a href="{{ path('app_logout') }}">Se déconnecter</a>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_login') }}">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="_username" value="{{ last_username }}" 
+                           class="form-control" required autocomplete="email" 
+                           placeholder="Votre adresse email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="_password" 
+                           class="form-control" required autocomplete="current-password"
+                           placeholder="Votre mot de passe">
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <div class="remember-forgot">
+                    <label class="remember-me">
+                        <input type="checkbox" name="_remember_me">
+                        <span>Se souvenir de moi</span>
+                    </label>
+                    <a href="{{ path('app_forgot_password_request') }}" class="forgot-password">
+                        Mot de passe oublié ?
+                    </a>
+                </div>
+
+                <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+
+                <a href="{{ path('app_register') }}" class="btn btn-register">
+                    <i class="fas fa-user-plus"></i> Créer un compte
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des champs de formulaire
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('focused');
+                });
+                input.addEventListener('blur', function() {
+                    if (!this.value) {
+                        this.parentElement.classList.remove('focused');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

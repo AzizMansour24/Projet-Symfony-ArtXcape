@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="alert alert-success">
+        <div class="text-center mb-4">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h2>Paiement réussi !</h2>
+            <p>Votre commande a été traitée avec succès.</p>
+        </div>
+        
+        {% if commande is defined and commande %}
+        <div class="card mt-4">
+            <div class="card-body"> 
+                <h4>Détails de la commande :</h4>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <img src="{{ asset('uploads/images/' ~ article.contenu) }}" 
+                             alt="{{ article.titre }}" 
+                             class="img-fluid rounded">
+                    </div>
+                    <div class="col-md-8">
+                        <h5>{{ article.titre }}</h5>
+                        <p><strong>N° de commande :</strong> {{ commande.numero }}</p>
+                        <p><strong>Date de commande :</strong> {{ commande.dateCommande|date("d/m/Y H:i") }}</p>
+                        <p><strong>Quantité :</strong> {{ commande.quantite }}</p>
+                        <p><strong>Prix unitaire :</strong> {{ commande.prixUnitaire }} Dt</p>
+                        <p><strong>Montant total :</strong> {{ commande.total }} Dt</p>
+                        <p><strong>Au Nom de :</strong> {{ app.user.nom }} {{ app.user.prenom}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{{ path('app_gallerie') }}" class="btn btn-primary me-2">
+                <i class="fas fa-arrow-left mr-2"></i> Retourner à la galerie
+            </a>
+            {% if article is defined and article %}
+            <a href="{{ path('generate_invoice_pdf', {'articleId': article.id, 'quantity': quantity}) }}" class="btn btn-secondary">
+                <i class="fas fa-file-pdf mr-2"></i> Télécharger la facture PDF
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.alert-success {
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    padding: 2rem;
+}
+
+.fa-check-circle {
+    color: #28a745;
+    animation: scale-in 0.5s ease-out;
+}
+
+@keyframes scale-in {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.img-fluid {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.badge {
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Candidatures pour {{ emploi.titre }}{% endblock %}
+
+{% block body %}
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Candidatures pour "{{ emploi.titre }}"</h1>
+            </div>
+        </div>
+    </div> 
+
+    <div class="container mt-5">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row">
+            {% for candidature in candidatures %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h5>{{ candidature.candidat.nom }} {{ candidature.candidat.prenom }}</h5>
+                                    <p class="text-muted">{{ candidature.dateCandidature|date('d/m/Y H:i') }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="badge {% if candidature.statut == 'En attente' %}bg-warning{% elseif candidature.statut == 'Acceptée' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ candidature.statut }}
+                                    </span>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <a href="{{ path('candidature_details', {'id': candidature.id}) }}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> Voir détails
+                                    </a>
+                                    
+                                    {% if candidature.statut == 'En attente' %}
+                                        <form action="{{ path('candidature_status_update', {'id': candidature.id}) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="status" value="Accepté">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-check"></i> Accepter
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ path('candidature_status_update', {'id': candidature.id}) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="status" value="Rejeté">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-times"></i> Rejeter
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Aucune candidature n'a encore été reçue pour cette offre.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4">
+            <a href="{{ path('app_emploi') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour aux offres
+            </a>
+        </div>
+    </div>
+{% endblock %} 

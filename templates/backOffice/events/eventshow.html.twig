@@ -1,0 +1,812 @@
+{% extends 'base2.html.twig' %}
+{% block body %}
+
+<div class="container-fluid">
+<br><br><br>
+    <h2 class="card-title">Gestion des Événements</h2>
+    
+
+    <div class="mb-3 d-flex justify-content-between">
+        <a href="{{ path('app_event_new') }}" class="btn btn-inverse-primary btn-fw">Ajouter un Nouvel Événement</a>
+        <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+            <i class="mdi mdi-file-pdf me-1"></i>Exporter en PDF
+        </button>
+    </div>
+
+    <!-- Enhanced search and filter section -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <h6 class="card-subtitle mb-3 text-primary">
+                <i class="mdi mdi-filter-variant me-2"></i>Search & Filters
+            </h6>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label text-muted small mb-2">Search by Title</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="mdi mdi-magnify"></i>
+                            </span>
+                            <input type="text" 
+                                   id="eventSearch" 
+                                   class="form-control" 
+                                   placeholder="Enter event title...">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label text-muted small mb-2">Price Range</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="mdi mdi-currency-usd"></i>
+                            </span>
+                            <select class="form-select" id="priceFilter">
+                                <option value="">All Prices</option>
+                                <option value="0-50">0 - 50 TND</option>
+                                <option value="51-100">51 - 100 TND</option>
+                                <option value="101-600">Above 100 TND</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label text-muted small mb-2">Availability</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white">
+                                <i class="mdi mdi-ticket-outline"></i>
+                            </span>
+                            <select class="form-select" id="availabilityFilter">
+                                <option value="">All Events</option>
+                                <option value="available">
+                                    <i class="mdi mdi-check-circle text-success"></i> Available Tickets
+                                </option>
+                                <option value="soldout">
+                                    <i class="mdi mdi-close-circle text-danger"></i> Sold Out
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" id="resetFilters">
+                        <i class="mdi mdi-refresh me-1"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered" id="eventsTable">
+            <thead>
+                <tr>
+                    <th style="background-color: white;" onclick="sortTable(0)">ID <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;" onclick="sortTable(1)">Titre <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;" onclick="sortTable(2)">Date <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;" onclick="sortTable(3)">Lieu <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;" onclick="sortTable(4)">Billets Disponibles <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;" onclick="sortTable(5)">Prix <i class="mdi mdi-sort"></i></th>
+                    <th style="background-color: white;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>{{ event.idevent }}</td>
+                        <td>{{ event.titre }}</td>
+                        <td>{{ event.dateEvenement|date('d M Y') }} à {{ event.timestart|date('H:i') }}</td>
+                        <td>{{ event.lieu }}</td>
+                        <td>
+                            {% if event.nombreBillets <= 0 %}
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ event.nombreBillets }}</span>
+                                    <span class="badge bg-danger" data-bs-toggle="tooltip" title="Sold Out!">
+                                        <i class="mdi mdi-ticket-off"></i> Sold Out
+                                    </span>
+                                </div>
+                            {% elseif event.nombreBillets <= 5 %}
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ event.nombreBillets }}</span>
+                                    <span class="badge bg-danger" data-bs-toggle="tooltip" title="Critical Stock Level!">
+                                        <i class="mdi mdi-alert-octagon"></i> Critical Stock
+                                    </span>
+                                </div>
+                            {% elseif event.nombreBillets <= 15 %}
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ event.nombreBillets }}</span>
+                                    <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="Low Stock Warning">
+                                        <i class="mdi mdi-alert"></i> Low Stock
+                                    </span>
+                                </div>
+                            {% else %}
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ event.nombreBillets }}</span>
+                                    <span class="badge bg-success" data-bs-toggle="tooltip" title="Stock Available">
+                                        <i class="mdi mdi-check-circle"></i> In Stock
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.seatprice }} TND</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_event_delete', {'id': event.idevent}) }}" 
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')"
+                                   title="Supprimer">
+                                    <i class="mdi mdi-delete"></i>
+                                </a>
+                                <a href="#" 
+                                   class="btn btn-primary btn-sm"
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#editModal{{ event.idevent }}"
+                                   title="Modifier">
+                                    <i class="mdi mdi-pencil"></i>
+                                </a>
+                                <a href="#" 
+                                   class="btn btn-info btn-sm"
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#detailsModal{{ event.idevent }}"
+                                   title="Détails">
+                                    <i class="mdi mdi-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">Aucun événement trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% for event in events %}
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal{{ event.idevent }}" tabindex="-1" aria-labelledby="editModalLabel{{ event.idevent }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel{{ event.idevent }}">Edit Event: {{ event.titre }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {{ form_start(forms[event.idevent], {
+                            'attr': {
+                                'id': 'editForm' ~ event.idevent,
+                                'class': 'edit-event-form'
+                            }
+                        }) }}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].titre, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].dateEvenement, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].timestart, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].lieu, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    {{ form_row(forms[event.idevent].description, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4">
+                                    {{ form_row(forms[event.idevent].nombreBillets, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form_row(forms[event.idevent].seatprice, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-4">
+                                    {{ form_row(forms[event.idevent].donation_objective, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].image, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form_row(forms[event.idevent].eventMission, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save changes</button>
+                            </div>
+                        {{ form_end(forms[event.idevent]) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Modal -->
+        <div class="modal fade" id="detailsModal{{ event.idevent }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ event.idevent }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="detailsModalLabel{{ event.idevent }}">
+                            <i class="mdi mdi-calendar-text me-2"></i>{{ event.titre }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {% if event.image %}
+                        <div class="text-center mb-4">
+                            <img src="{{ asset('uploads/images/' ~ event.image) }}" 
+                                 alt="{{ event.titre }}" 
+                                 class="img-fluid rounded shadow" 
+                                 style="max-height: 300px; width: auto;">
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-3 text-primary">
+                                            <i class="mdi mdi-information-outline me-2"></i>Basic Information
+                                        </h6>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="mdi mdi-calendar me-2 text-muted"></i>
+                                            <span>{{ event.dateEvenement|date('d M Y') }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i class="mdi mdi-clock-outline me-2 text-muted"></i>
+                                            <span>{{ event.timestart|date('H:i') }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="mdi mdi-map-marker me-2 text-muted"></i>
+                                            <span>{{ event.lieu }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-3 text-primary">
+                                            <i class="mdi mdi-ticket-outline me-2"></i>Ticket Information
+                                        </h6>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="text-muted">Available Tickets:</span>
+                                            <span class="badge bg-success">{{ event.nombreBillets }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted">Price per Ticket:</span>
+                                            <span class="badge bg-info">{{ event.seatprice }} TND</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-3 text-primary">
+                                            <i class="mdi mdi-text-box-outline me-2"></i>Event Description
+                                        </h6>
+                                        <p class="card-text">{{ event.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-3 text-primary">
+                                            <i class="mdi mdi-flag-outline me-2"></i>Event Mission
+                                        </h6>
+                                        <p class="card-text">{{ event.eventMission }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="mdi mdi-close me-1"></i>Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{# Replace the existing notification div with this new version #}
+<div class="position-fixed top-0 end-0 p-4" style="z-index: 1060; margin-top: 60px;">
+    {# Permission Request Toast #}
+    <div id="notificationPermission" class="toast hide shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary text-white border-0">
+            <i class="mdi mdi-bell-ring-outline me-2"></i>
+            <strong class="me-auto">Enable Notifications</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body bg-white">
+            <div class="d-flex align-items-center mb-2">
+                <i class="mdi mdi-information-outline text-primary me-2" style="font-size: 1.2rem;"></i>
+                <p class="mb-0">Stay updated with real-time stock alerts</p>
+            </div>
+            <div class="mt-2 pt-2 border-top">
+                <button type="button" class="btn btn-primary btn-sm" id="enableNotifications">
+                    <i class="mdi mdi-bell-plus me-1"></i>Enable
+                </button>
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="toast">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# Stock Alert Notifications Container #}
+    <div class="notification-container" style="max-height: calc(100vh - 100px); overflow-y: auto;">
+        {% for event in events %}
+            {% if event.nombreBillets <= 15 %}
+                <div class="toast show mb-3 stock-alert shadow-lg" 
+                     role="alert" 
+                     aria-live="assertive" 
+                     aria-atomic="true" 
+                     data-bs-delay="10000"
+                     data-event-id="{{ event.idevent }}"
+                     data-event-title="{{ event.titre }}"
+                     data-tickets="{{ event.nombreBillets }}">
+                    <div class="toast-header border-0 {% if event.nombreBillets <= 5 %}bg-danger{% else %}bg-warning{% endif %} text-white">
+                        <i class="mdi {% if event.nombreBillets <= 5 %}mdi-alert-octagon{% else %}mdi-alert{% endif %} me-2"></i>
+                        <strong class="me-auto">
+                            {% if event.nombreBillets <= 5 %}
+                                Critical Stock Alert
+                            {% else %}
+                                Low Stock Warning
+                            {% endif %}
+                        </strong>
+                        <small class="text-white opacity-75">just now</small>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body bg-white">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ event.titre }}</h6>
+                                <p class="mb-2 text-muted small">
+                                    {% if event.nombreBillets <= 0 %}
+                                        <i class="mdi mdi-ticket-off text-danger me-1"></i>
+                                        <strong class="text-danger">Sold Out!</strong> Consider adding more tickets.
+                                    {% elseif event.nombreBillets <= 5 %}
+                                        <i class="mdi mdi-alert-circle text-danger me-1"></i>
+                                        <strong class="text-danger">Critical:</strong> Only {{ event.nombreBillets }} tickets remaining!
+                                    {% else %}
+                                        <i class="mdi mdi-alert-circle text-warning me-1"></i>
+                                        Only {{ event.nombreBillets }} tickets remaining
+                                    {% endif %}
+                                </p>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('{{ event.idevent }}')">
+                                        <i class="mdi mdi-pencil me-1"></i>Manage Stock
+                                    </button>
+                                    <button class="btn btn-sm btn-light ms-2" data-bs-dismiss="toast">
+                                        <i class="mdi mdi-close me-1"></i>Dismiss
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{# Add this CSS in your stylesheet or in a style tag #}
+<style>
+.notification-container {
+    min-width: 350px;
+    max-width: 400px;
+}
+
+.notification-container .toast {
+    opacity: 1 !important;
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.notification-container .toast.hide {
+    display: none;
+}
+
+.toast-header {
+    padding: 0.75rem 1rem;
+}
+
+.toast-body {
+    padding: 1rem;
+}
+
+@media (max-width: 576px) {
+    .notification-container {
+        min-width: 300px;
+        max-width: 100%;
+        margin: 0 10px;
+    }
+}
+</style>
+
+{# Add this JavaScript at the end of your template #}
+{% block javascripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{{ parent() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    // Create a clone of the table to modify for PDF
+    const tableClone = document.querySelector('#eventsTable').cloneNode(true);
+    
+    // Remove the Actions column and any hidden rows
+    const rows = tableClone.querySelectorAll('tr');
+    rows.forEach(row => {
+        // Remove the last cell (Actions column) from each row
+        const cells = row.cells;
+        if (cells.length > 0) {
+            row.deleteCell(-1);
+        }
+        
+        // Only include visible rows
+        if (row.style.display === 'none') {
+            row.remove();
+        }
+    });
+
+    // Get current date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Create a container for the PDF content with enhanced styling
+    const element = document.createElement('div');
+    element.innerHTML = `
+        <div style="padding: 40px; background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%);">
+            <!-- Artistic Header -->
+            <div style="text-align: center; margin-bottom: 30px; position: relative;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; opacity: 0.1;">
+                    <!-- SVG Background Pattern -->
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <pattern id="pattern" width="10" height="10" patternUnits="userSpaceOnUse">
+                            <circle cx="2" cy="2" r="1" fill="#007bff"/>
+                        </pattern>
+                        <rect width="100%" height="100%" fill="url(#pattern)"/>
+                    </svg>
+                </div>
+                <h1 style="color: #2c3e50; font-size: 28px; margin-bottom: 10px; font-weight: bold;">Events Report</h1>
+                <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 5px;">Generated on ${formattedDate}</p>
+                <div style="width: 60px; height: 3px; background: #007bff; margin: 15px auto;"></div>
+            </div>
+
+            <!-- Table Styling -->
+            <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <table style="width: 100%; border-collapse: collapse; background: white;">
+                    <thead>
+                        <tr style="background: #007bff;">
+                            ${Array.from(tableClone.querySelector('thead tr').cells)
+                                .map(cell => `<th style="padding: 12px 15px; color: white; text-align: left; font-weight: bold;">
+                                    ${cell.textContent}
+                                </th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Array.from(tableClone.querySelectorAll('tbody tr'))
+                            .map((row, index) => `
+                                <tr style="background-color: ${index % 2 === 0 ? '#f8f9fa' : 'white'};">
+                                    ${Array.from(row.cells)
+                                        .map(cell => `<td style="padding: 12px 15px; border-bottom: 1px solid rgb(17, 75, 134); color: #2c3e50;">
+                                            ${cell.textContent}
+                                        </td>`).join('')}
+                                </tr>
+                            `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 12px;">
+                <p>© ${today.getFullYear()} Your Company Name. All rights reserved.</p>
+                <p style="margin-top: 5px;">This document is confidential and intended for internal use only.</p>
+            </div>
+        </div>
+    `;
+
+    // Configure PDF options with better quality settings
+    const opt = {
+        margin: [0.5, 0.5],
+        filename: `events-report-${today.toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            letterRendering: true
+        },
+        jsPDF: { 
+            unit: 'in', 
+            format: 'a4', 
+            orientation: 'landscape',
+            compress: true
+        }
+    };
+
+    // Generate PDF with loading indicator
+    const button = document.getElementById('exportPdfBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i>Generating PDF...';
+    button.disabled = true;
+
+    html2pdf().set(opt).from(element).save()
+        .then(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        })
+        .catch(error => {
+            console.error('PDF generation failed:', error);
+            button.innerHTML = originalText;
+            button.disabled = false;
+            alert('Failed to generate PDF. Please try again.');
+        });
+}
+
+// Your existing DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('eventSearch');
+    const priceFilter = document.getElementById('priceFilter');
+    const availabilityFilter = document.getElementById('availabilityFilter');
+    const resetButton = document.getElementById('resetFilters');
+    const table = document.getElementById('eventsTable');
+    const rows = table.getElementsByTagName('tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const priceRange = priceFilter.value;
+        const availability = availabilityFilter.value;
+
+        let visibleCount = 0;
+
+        // Start from index 1 to skip the header row
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.getElementsByTagName('td')[1]) continue; // Skip if not a data row
+
+            const title = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+            const price = parseFloat(row.getElementsByTagName('td')[5].textContent);
+            const tickets = parseInt(row.getElementsByTagName('td')[4].textContent);
+
+            let showRow = true;
+
+            // Title filter
+            if (searchTerm && !title.includes(searchTerm)) {
+                showRow = false;
+            }
+
+            // Price filter
+            if (priceRange) {
+                const [min, max] = priceRange.split('-').map(Number);
+                if (max) {
+                    if (price < min || price > max) showRow = false;
+                } else {
+                    if (price <= min) showRow = false;
+                }
+            }
+
+            // Availability filter
+            if (availability) {
+                if (availability === 'available' && tickets <= 0) showRow = false;
+                if (availability === 'soldout' && tickets > 0) showRow = false;
+            }
+
+            row.style.display = showRow ? '' : 'none';
+            if (showRow) visibleCount++;
+        }
+
+        // Handle no results message
+        updateNoResultsMessage(visibleCount);
+    }
+
+    function updateNoResultsMessage(visibleCount) {
+        const tbody = table.querySelector('tbody');
+        const existingMessage = tbody.querySelector('.no-results-row');
+
+        if (visibleCount === 0) {
+            if (!existingMessage) {
+                const messageRow = document.createElement('tr');
+                messageRow.classList.add('no-results-row');
+                messageRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="mdi mdi-alert-circle-outline mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">No matching events found</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(messageRow);
+            }
+        } else if (existingMessage) {
+            existingMessage.remove();
+        }
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', filterTable);
+    priceFilter.addEventListener('change', filterTable);
+    availabilityFilter.addEventListener('change', filterTable);
+
+    resetButton.addEventListener('click', function() {
+        searchInput.value = '';
+        priceFilter.value = '';
+        availabilityFilter.value = '';
+        filterTable();
+    });
+
+    const forms = document.querySelectorAll('.edit-event-form');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const eventId = this.id.replace('editForm', '');
+            const modalElement = document.querySelector(`#editModal${eventId}`);
+            const modal = new bootstrap.Modal(modalElement);
+            fetch(`/event/edit/${eventId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    
+                    modal.hide();
+                    
+                    // Show success message
+                    alert(data.message);
+                    
+                    // Reload the page to show updated data
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Error updating event');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the event');
+            });
+        });
+    });
+
+    document.querySelectorAll('.modal').forEach(modalElement =>{
+        new bootstrap.Modal(modalElement);
+    });
+    // Add event listener for PDF export button
+    document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+
+    // Initialize all tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Initialize all toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    var toastList = toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl, {
+            autohide: true,
+            delay: 10000
+        })
+    });
+
+    // Browser Notification System
+    let notificationPermission = Notification.permission;
+    const notificationToast = new bootstrap.Toast(document.getElementById('notificationPermission'));
+
+    function checkNotificationPermission() {
+        if (notificationPermission === "default") {
+            notificationToast.show();
+        }
+    }
+
+    function showBrowserNotification(event) {
+        if (notificationPermission === "granted") {
+            const stockLevel = event.nombreBillets;
+            let notificationOptions = {
+                icon: '/path/to/your/logo.png', // Add your logo path
+                badge: '/path/to/your/badge.png', // Add your badge path
+                tag: `event-${event.idevent}`,
+                renotify: true
+            };
+
+            if (stockLevel <= 5) {
+                notificationOptions.body = `CRITICAL: Only ${stockLevel} tickets remaining for "${event.titre}"!`;
+                notificationOptions.requireInteraction = true;
+            } else {
+                notificationOptions.body = `Low stock alert: ${stockLevel} tickets remaining for "${event.titre}"`;
+            }
+
+            new Notification(
+                stockLevel <= 5 ? "Critical Stock Alert!" : "Low Stock Warning", 
+                notificationOptions
+            );
+        }
+    }
+
+    document.getElementById('enableNotifications')?.addEventListener('click', function() {
+        Notification.requestPermission().then(function(permission) {
+            notificationPermission = permission;
+            notificationToast.hide();
+            
+            if (permission === "granted") {
+                // Show notifications for current low stock events
+                document.querySelectorAll('.stock-alert').forEach(alert => {
+                    const eventData = {
+                        idevent: alert.dataset.eventId,
+                        titre: alert.dataset.eventTitle,
+                        nombreBillets: parseInt(alert.dataset.tickets)
+                    };
+                    showBrowserNotification(eventData);
+                });
+            }
+        });
+    });
+
+    // Function to open edit modal
+    window.openEditModal = function(eventId) {
+        const modalElement = document.querySelector(`#editModal${eventId}`);
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    };
+
+    // Check notification permission on page load
+    setTimeout(checkNotificationPermission, 2000);
+});
+
+function sortTable(columnIndex) {
+    const table = document.getElementById("eventsTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const isAscending = table.getAttribute("data-sort-order") === "asc";
+
+    rows.sort((a, b) => {
+        const aText = a.children[columnIndex].textContent.trim();
+        const bText = b.children[columnIndex].textContent.trim();
+
+        if (columnIndex === 2) { // Date column
+            return isAscending ? new Date(aText) - new Date(bText) : new Date(bText) - new Date(aText);
+        } else {
+            return isAscending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+        }
+    });
+
+    // Clear the existing rows and append the sorted rows
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Toggle sort order
+    table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+}
+</script>
+{% endblock %}
+
+{% endblock %}

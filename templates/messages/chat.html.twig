@@ -1,0 +1,892 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="text-center my-4">Chat avec {{ receiver.nom }} {{ receiver.prenom }}</h1>
+        
+        <div class="messages-container" id="messages-container">
+            {% for message in messages %}
+                <div class="message {% if message.sender == app.user %}text-right{% endif %}" data-message-id="{{ message.id }}">
+                    <strong>{{ message.sender.nom }} {{ message.sender.prenom }}:</strong>
+                    
+                    {# Add message options for sender #}
+                    {% if message.sender == app.user %}
+                        <div class="message-options">
+                            <button class="btn btn-sm btn-link edit-message" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-link delete-message" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    {# Add edit form (hidden by default) #}
+                    <div class="edit-form" style="display: none;">
+                        {% if message.fileType == 'voice' %}
+                            <div class="voice-edit-container">
+                                <div class="d-flex align-items-center mb-2">
+                                    <button class="btn btn-danger me-2 start-new-recording">
+                                        <i class="fas fa-microphone"></i> Nouvel enregistrement
+                                    </button>
+                                    <span class="edit-recording-timer">00:00</span>
+                                    <div class="edit-recording-waves" style="display: none;">
+                                        🎤 Enregistrement en cours...
+                                    </div>
+                                </div>
+                                <audio class="edit-recording-preview" controls style="display: none;"></audio>
+                                <input type="file" class="edit-voice-input" style="display: none;">
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-primary save-edit">Enregistrer</button>
+                                    <button class="btn btn-sm btn-secondary cancel-edit">Annuler</button>
+                                </div>
+                            </div>
+                        {% elseif message.fileType == 'file' %}
+                            <div class="file-edit-container">
+                                <label class="btn btn-primary mb-2" for="editFileInput">
+                                    <i class="fas fa-paperclip"></i> Choisir un nouveau fichier
+                                </label>
+                                <input type="file" id="editFileInput" class="edit-file-input" style="display: none;">
+                                <div id="editFilePreview" class="mb-2"></div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-primary save-edit">Enregistrer</button>
+                                    <button class="btn btn-sm btn-secondary cancel-edit">Annuler</button>
+                                </div>
+                            </div>
+                        {% else %}
+                            <textarea class="form-control edit-content">{{ message.content }}</textarea>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-primary save-edit">Enregistrer</button>
+                                <button class="btn btn-sm btn-secondary cancel-edit">Annuler</button>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="message-content" data-type="{{ message.fileType ?? 'text' }}">
+                        {% if message.fileType == 'voice' %}
+                            <div class="voice-message-player">
+                                <div class="voice-message-container">
+                                    <button class="play-pause-btn">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <div class="voice-waveform">
+                                        <div class="waveform-placeholder"></div>
+                                        <div class="voice-duration">0:00</div>
+                                    </div>
+                                </div>
+                                <audio class="voice-audio" src="{{ asset(message.filePath) }}"></audio>
+                            </div>
+                        {% elseif message.filePath %}
+                            {% if message.filePath ends with '.jpg' or message.filePath ends with '.png' or message.filePath ends with '.gif' %}
+                                <div class="image-container">
+                                    <img src="{{ asset(message.filePath) }}" alt="Image" class="message-image" />
+                                </div>
+                            {% else %}
+                                <a href="{{ asset(message.filePath) }}" target="_blank" class="btn btn-primary file-link">
+                                    <i class="fas fa-download"></i> Télécharger le fichier
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <p>{{ message.content }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="message-footer">
+                        <small class="text-muted">
+                            {{ message.createdAt|date('Y-m-d H:i:s') }}
+                            {% if message.editedAt %}
+                                (Modifié le {{ message.editedAt|date('Y-m-d H:i:s') }})
+                            {% endif %}
+                        </small>
+                        {% if message.sender == app.user %}
+                            <span class="read-status">
+                                {% if message.isRead %}
+                                    <i class="fas fa-check-double" title="Lu à {{ message.readAt|date('H:i') }}"></i>
+                                {% else %}
+                                    <i class="fas fa-check"></i>
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="voice-recorder-container mb-3" style="display: none;">
+            <div class="d-flex align-items-center">
+                <button id="startRecording" class="btn btn-danger me-2">
+                    <i class="fas fa-microphone"></i> Enregistrer
+                </button>
+                <button id="stopRecording" class="btn btn-secondary me-2" style="display: none;">
+                    <i class="fas fa-stop"></i> Arrêter
+                </button>
+                <span id="recordingTimer" class="me-2">00:00</span>
+                <div id="recordingWaves" class="recording-waves" style="display: none;">
+                    🎤 Enregistrement en cours...
+                </div>
+            </div>
+            <audio id="recordingPreview" controls style="display: none;" class="mt-2"></audio>
+        </div>
+
+        <div class="chat-input-area">
+            <form action="{{ path('messages_send', {'id': receiver.id}) }}" method="post" enctype="multipart/form-data">
+                {# File preview area #}
+                <div id="filePreviewArea" class="file-preview-area" style="display: none;">
+                    <div class="preview-content">
+                        <img id="imagePreview" style="display: none;" class="img-preview">
+                        <span id="fileInfo" style="display: none;"></span>
+                    </div>
+                    <button type="button" id="removeFile" class="btn btn-sm btn-danger">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    {# Voice recorder button #}
+                    <button type="button" id="toggleVoiceRecorder" class="btn btn-light" title="Message vocal">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+
+                    {# File attachment button #}
+                    <label for="fileInput" class="btn btn-light mb-0" style="cursor: pointer;" title="Joindre un fichier">
+                        <i class="fas fa-paperclip"></i>
+                    </label>
+                    <input type="file" name="file" id="fileInput" style="display: none;" 
+                           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"/>
+
+                    {# Image attachment button #}
+                    <label for="imageInput" class="btn btn-light mb-0" style="cursor: pointer;" title="Envoyer une image">
+                        <i class="fas fa-image"></i>
+                    </label>
+                    <input type="file" name="image" id="imageInput" style="display: none;" 
+                           accept="image/*" capture="environment"/>
+
+                    {# Voice message input (hidden) #}
+                    <input type="file" name="voice_message" id="voiceMessageInput" style="display: none;" />
+
+                    {# Message text area #}
+                    <textarea name="content" class="form-control" rows="1" 
+                             placeholder="Écrivez un message..." style="border: none;"></textarea>
+
+                    {# Send button #}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <a href="{{ path('messages_list') }}" class="btn btn-secondary mt-3">
+            Retour à la liste des conversations
+        </a>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Modern Chat Container */
+        .messages-container {
+            background: #ffffff;
+            border-radius: 15px;
+            height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e4e4e4;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        /* Message Bubbles */
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 65%;
+            margin: 8px 0;
+            position: relative;
+            clear: both;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            background: #f0f2f5;  /* Light gray for received messages */
+            color: #050505;
+            margin: 2px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.text-right {
+            margin-left: auto;
+        }
+
+        .message.text-right .message-content {
+            background: #e3f2fd;  /* Light blue for sent messages */
+            color: #1a1a1a;
+            border: 1px solid #bbdefb;
+        }
+
+        .message strong {
+            font-size: 0.85em;
+            margin-bottom: 4px;
+            color: #65676B;
+            padding: 0 12px;
+        }
+
+        .message.text-right strong {
+            text-align: right;
+            color: #65676B;
+        }
+
+        /* Voice Message Player */
+        .voice-message-player {
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .voice-message-container {
+            background: inherit;
+            padding: 8px;
+            border-radius: 18px;
+            gap: 12px;
+        }
+
+        .play-pause-btn {
+            width: 40px;
+            height: 40px;
+            background: #90caf9;  /* Lighter blue for play button */
+            border: none;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .play-pause-btn:hover {
+            background: #64b5f6;  /* Slightly darker on hover */
+        }
+
+        .message.text-right .play-pause-btn {
+            background: white;
+            color: #90caf9;
+            border: 1px solid #bbdefb;
+        }
+
+        /* Message Footer */
+        .message-footer {
+            padding: 0 12px;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75em;
+            color: #65676B;
+        }
+
+        .message.text-right .message-footer {
+            flex-direction: row-reverse;
+        }
+
+        /* Message Options */
+        .message-options {
+            position: absolute;
+            right: 0;
+            top: -20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: none;
+            z-index: 100;
+            padding: 4px;
+        }
+
+        .message:hover .message-options {
+            display: flex;
+            gap: 4px;
+        }
+
+        .message-options .btn-link {
+            color: #65676B;
+            padding: 4px 8px;
+            font-size: 0.9em;
+            border-radius: 4px;
+        }
+
+        .message-options .btn-link:hover {
+            background: #f8f9fa;
+            color: #1a1a1a;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+
+        .input-group {
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 8px;
+            gap: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-group textarea {
+            border: none;
+            background: transparent;
+            resize: none;
+            padding: 8px 15px;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .input-group .btn {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group .btn-primary {
+            background: #90caf9;
+            border-color: #90caf9;
+        }
+
+        .input-group .btn-primary:hover {
+            background: #64b5f6;
+            border-color: #64b5f6;
+        }
+
+        /* Voice Recorder */
+        .voice-recorder-container {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            margin: 15px 0;
+        }
+
+        .recording-waves {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 0 15px;
+        }
+
+        #recordingTimer {
+            font-family: monospace;
+            font-size: 1.1em;
+            color: #050505;
+        }
+
+        /* Edit Form */
+        .edit-form {
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-form textarea {
+            border: 1px solid #e4e4e4;
+            border-radius: 8px;
+            padding: 8px;
+        }
+
+        /* Read Status */
+        .read-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .read-status i {
+            font-size: 1em;
+        }
+
+        .fa-check {
+            color: #9e9e9e;  /* Gray for single check */
+        }
+
+        .fa-check-double {
+            color: #90caf9;  /* Light blue for double check */
+        }
+
+        /* Recording waves animation */
+        .recording-wave {
+            background: #ef5350;
+        }
+
+        .file-preview-area {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .img-preview {
+            max-height: 100px;
+            max-width: 200px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        #fileInfo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        #fileInfo i {
+            font-size: 1.5em;
+        }
+
+        /* Message image styles */
+        .message .image-container {
+            margin-top: 5px;
+            max-width: 300px;
+        }
+
+        .message .message-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .message .message-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* File attachment styles */
+        .file-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #333;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .file-link:hover {
+            background: #e9ecef;
+            text-decoration: none;
+        }
+
+        .file-link i {
+            font-size: 1.2em;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('messages-container');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Mark messages as read when they become visible
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const message = entry.target;
+                        if (!message.classList.contains('text-right')) { // Only for received messages
+                            markMessageAsRead(message.dataset.messageId);
+                        }
+                    }
+                });
+            });
+
+            // Observe all received messages
+            document.querySelectorAll('.message:not(.text-right)').forEach(message => {
+                observer.observe(message);
+            });
+
+            function markMessageAsRead(messageId) {
+                fetch(`/messages/${messageId}/mark-read`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+            }
+
+            // Check for new messages and update read status
+            setInterval(function() {
+                fetch(`/messages/${receiverId}/check-new?since=${lastCheck}`)
+                    .then(response => response.json())
+                    .then(messages => {
+                        messages.forEach(message => {
+                            // Update read status for sent messages
+                            if (message.isSender) {
+                                const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+                                if (messageElement) {
+                                    const readStatus = messageElement.querySelector('.read-status');
+                                    if (message.isRead) {
+                                        readStatus.innerHTML = `<i class="fas fa-check-double" title="Lu à ${message.readAt}"></i>`;
+                                    }
+                                }
+                            }
+                        });
+                    });
+            }, 3000); // Check every 3 seconds
+
+            // Voice recording functionality
+            const toggleRecorderBtn = document.getElementById('toggleVoiceRecorder');
+            const recorderContainer = document.querySelector('.voice-recorder-container');
+            const startRecordingBtn = document.getElementById('startRecording');
+            const stopRecordingBtn = document.getElementById('stopRecording');
+            const recordingTimer = document.getElementById('recordingTimer');
+            const recordingWaves = document.getElementById('recordingWaves');
+            const recordingPreview = document.getElementById('recordingPreview');
+            const voiceMessageInput = document.getElementById('voiceMessageInput');
+            
+            let mediaRecorder;
+            let audioChunks = [];
+            let timerInterval;
+            let startTime;
+
+            toggleRecorderBtn.addEventListener('click', () => {
+                recorderContainer.style.display = recorderContainer.style.display === 'none' ? 'block' : 'none';
+            });
+
+            startRecordingBtn.addEventListener('click', async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        recordingPreview.src = URL.createObjectURL(audioBlob);
+                        
+                        // Create a File object from the Blob
+                        const audioFile = new File([audioBlob], 'voice-message.wav', { type: 'audio/wav' });
+                        
+                        // Create a new FileList containing the audio file
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(audioFile);
+                        voiceMessageInput.files = dataTransfer.files;
+                    };
+
+                    mediaRecorder.start();
+                    startTime = Date.now();
+                    updateTimer();
+                    timerInterval = setInterval(updateTimer, 1000);
+
+                    startRecordingBtn.style.display = 'none';
+                    stopRecordingBtn.style.display = 'inline-block';
+                    recordingWaves.style.display = 'inline-block';
+                    recordingPreview.style.display = 'none';
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    alert('Impossible d\'accéder au microphone. Veuillez vérifier les permissions.');
+                }
+            });
+
+            stopRecordingBtn.addEventListener('click', () => {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                clearInterval(timerInterval);
+                
+                startRecordingBtn.style.display = 'inline-block';
+                stopRecordingBtn.style.display = 'none';
+                recordingWaves.style.display = 'none';
+                recordingPreview.style.display = 'block';
+            });
+
+            function updateTimer() {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                recordingTimer.textContent = `${minutes}:${seconds}`;
+            }
+
+            // Voice message playback functionality
+            document.querySelectorAll('.voice-message-player').forEach(player => {
+                const audio = player.querySelector('.voice-audio');
+                const playPauseBtn = player.querySelector('.play-pause-btn');
+                const waveform = player.querySelector('.waveform-placeholder');
+                const durationDisplay = player.querySelector('.voice-duration');
+                let progressBar;
+
+                // Create progress bar
+                progressBar = document.createElement('div');
+                progressBar.className = 'waveform-progress';
+                waveform.appendChild(progressBar);
+
+                // Format time function
+                const formatTime = (seconds) => {
+                    const minutes = Math.floor(seconds / 60);
+                    seconds = Math.floor(seconds % 60);
+                    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                };
+
+                // Update duration when metadata is loaded
+                audio.addEventListener('loadedmetadata', () => {
+                    durationDisplay.textContent = formatTime(audio.duration);
+                });
+
+                // Update progress bar and time during playback
+                audio.addEventListener('timeupdate', () => {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    durationDisplay.textContent = formatTime(audio.currentTime);
+                });
+
+                // Handle play/pause
+                playPauseBtn.addEventListener('click', () => {
+                    const icon = playPauseBtn.querySelector('i');
+                    if (audio.paused) {
+                        // Stop all other playing audio elements
+                        document.querySelectorAll('.voice-audio').forEach(a => {
+                            if (a !== audio && !a.paused) {
+                                a.pause();
+                                a.closest('.voice-message-player')
+                                 .querySelector('.play-pause-btn i')
+                                 .className = 'fas fa-play';
+                            }
+                        });
+                        
+                        audio.play();
+                        icon.className = 'fas fa-pause';
+                    } else {
+                        audio.pause();
+                        icon.className = 'fas fa-play';
+                    }
+                });
+
+                // Reset play button when audio ends
+                audio.addEventListener('ended', () => {
+                    playPauseBtn.querySelector('i').className = 'fas fa-play';
+                    durationDisplay.textContent = formatTime(audio.duration);
+                });
+
+                // Allow clicking on waveform to seek
+                waveform.addEventListener('click', (e) => {
+                    const rect = waveform.getBoundingClientRect();
+                    const pos = (e.clientX - rect.left) / rect.width;
+                    audio.currentTime = pos * audio.duration;
+                });
+            });
+
+            // Update recording visualization
+            recordingWaves.innerHTML = `
+                <div class="recording-wave"></div>
+                <div class="recording-wave"></div>
+                <div class="recording-wave"></div>
+                <div class="recording-wave"></div>
+                <div class="recording-wave"></div>
+            `;
+
+            // Message editing and deletion
+            document.querySelectorAll('.message').forEach(messageElement => {
+                const messageId = messageElement.dataset.messageId;
+                const editBtn = messageElement.querySelector('.edit-message');
+                const deleteBtn = messageElement.querySelector('.delete-message');
+                const editForm = messageElement.querySelector('.edit-form');
+                const messageContent = messageElement.querySelector('.message-content');
+                
+                if (editBtn) {
+                    editBtn.addEventListener('click', () => {
+                        editForm.style.display = 'block';
+                        messageContent.style.display = 'none';
+                    });
+                }
+
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', async () => {
+                        if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+                            try {
+                                const response = await fetch(`/messages/${messageId}/delete`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                });
+                                
+                                if (response.ok) {
+                                    messageElement.remove();
+                                } else {
+                                    const data = await response.json();
+                                    alert(data.error || 'Une erreur est survenue.');
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                alert('Une erreur est survenue lors de la suppression.');
+                            }
+                        }
+                    });
+                }
+
+                const saveEditBtn = messageElement.querySelector('.save-edit');
+                const cancelEditBtn = messageElement.querySelector('.cancel-edit');
+                const editContent = messageElement.querySelector('.edit-content');
+
+                if (saveEditBtn) {
+                    saveEditBtn.addEventListener('click', async () => {
+                        try {
+                            const response = await fetch(`/messages/${messageId}/edit`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: JSON.stringify({ content: editContent.value })
+                            });
+
+                            const data = await response.json();
+                            
+                            if (response.ok) {
+                                messageContent.querySelector('p').textContent = data.content;
+                                messageElement.querySelector('.text-muted').textContent = 
+                                    `${messageElement.querySelector('.text-muted').textContent.split('(')[0]} (Modifié le ${data.editedAt})`;
+                                editForm.style.display = 'none';
+                                messageContent.style.display = 'block';
+                            } else {
+                                alert(data.error || 'Une erreur est survenue.');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            alert('Une erreur est survenue lors de la modification.');
+                        }
+                    });
+                }
+
+                if (cancelEditBtn) {
+                    cancelEditBtn.addEventListener('click', () => {
+                        editForm.style.display = 'none';
+                        messageContent.style.display = 'block';
+                        editContent.value = messageContent.querySelector('p').textContent;
+                    });
+                }
+            });
+
+            // File handling
+            const fileInput = document.getElementById('fileInput');
+            const imageInput = document.getElementById('imageInput');
+            const filePreviewArea = document.getElementById('filePreviewArea');
+            const imagePreview = document.getElementById('imagePreview');
+            const fileInfo = document.getElementById('fileInfo');
+            const removeFileBtn = document.getElementById('removeFile');
+
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    showFilePreview(file);
+                }
+            });
+
+            // Handle image selection
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    showImagePreview(file);
+                }
+            });
+
+            // Remove selected file
+            removeFileBtn.addEventListener('click', function() {
+                fileInput.value = '';
+                imageInput.value = '';
+                filePreviewArea.style.display = 'none';
+                imagePreview.style.display = 'none';
+                fileInfo.style.display = 'none';
+            });
+
+            function showFilePreview(file) {
+                const icon = getFileIcon(file.name);
+                fileInfo.innerHTML = `<i class="${icon}"></i> ${file.name}`;
+                fileInfo.style.display = 'flex';
+                imagePreview.style.display = 'none';
+                filePreviewArea.style.display = 'flex';
+            }
+
+            function showImagePreview(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    fileInfo.style.display = 'none';
+                    filePreviewArea.style.display = 'flex';
+                }
+                reader.readAsDataURL(file);
+            }
+
+            function getFileIcon(filename) {
+                const ext = filename.split('.').pop().toLowerCase();
+                const icons = {
+                    pdf: 'fas fa-file-pdf',
+                    doc: 'fas fa-file-word',
+                    docx: 'fas fa-file-word',
+                    xls: 'fas fa-file-excel',
+                    xlsx: 'fas fa-file-excel',
+                    txt: 'fas fa-file-alt',
+                    // Add more file types as needed
+                };
+                return icons[ext] || 'fas fa-file';
+            }
+
+            // Make images clickable for full view
+            document.querySelectorAll('.message-image').forEach(img => {
+                img.addEventListener('click', function() {
+                    window.open(this.src, '_blank');
+                });
+            });
+        });
+    </script>
+{% endblock %}

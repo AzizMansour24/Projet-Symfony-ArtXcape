@@ -1,0 +1,325 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8 offset-md-2">
+                    <h2 class="text-center mb-4">{{ titre }} Utilisateur</h2>
+
+                    {{ form_start(form, {'attr': {'class': 'form-horizontal'}}) }}
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Nom</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Nom'}}) }}
+                            <small class="text-danger">{{ form_errors(form.nom) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Prénom</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.prenom, {'attr': {'class': 'form-control', 'placeholder': 'Prénom'}}) }}
+                            <small class="text-danger">{{ form_errors(form.prenom) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Email</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Email'}}) }}
+                            <small class="text-danger">{{ form_errors(form.email) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Mot de passe</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control', 'placeholder': 'Laisser vide si inchangé'}}) }}
+                            <small class="text-danger">{{ form_errors(form.plainPassword) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Téléphone</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.numtlf, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
+                            <small class="text-danger">{{ form_errors(form.numtlf) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Âge</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.age, {'attr': {'class': 'form-control', 'placeholder': 'Âge'}}) }}
+                            <small class="text-danger">{{ form_errors(form.age) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Avatar</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.avatarUrl, {'attr': {'class': 'form-control', 'placeholder': 'URL de l\'avatar'}}) }}
+                            <small class="text-danger">{{ form_errors(form.avatarUrl) }}</small>
+                            {% if user.avatarUrl %}
+                                <img src="{{ app.user.avatarUrl|replace({'.glb': '.png'}) }}" alt="Avatar" class="avatar-image" style="width: 100px; height: 100px;">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-sm-3 col-form-label">Rôles</label>
+                        <div class="col-sm-9">
+                            {{ form_widget(form.roles, {'attr': {'class': 'form-control'}}) }}
+                            <small class="text-danger">{{ form_errors(form.roles) }}</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <div class="col-sm-9 offset-sm-3">
+                            <button type="submit" class="btn btn-primary">{{ titre }}</button>
+                            <a href="{{ path('back_showuser') }}" class="btn btn-secondary">Retour</a>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1a1f2c 0%, #2d3a66 100%);
+        padding: 2rem;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transform: translateY(0);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .form-header {
+        background: rgba(33, 150, 243, 0.1);
+        padding: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .form-title {
+        color: #fff;
+        font-size: 2rem;
+        font-weight: 600;
+        text-align: center;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-body {
+        padding: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        opacity: 0;
+        animation: slideInRight 0.5s ease forwards;
+    }
+
+    .form-group:nth-child(odd) {
+        animation-delay: 0.2s;
+    }
+
+    .form-group:nth-child(even) {
+        animation-delay: 0.4s;
+    }
+
+    .form-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        transition: all 0.3s ease;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.07);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #fff;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #2196F3;
+        box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .avatar-preview {
+        position: relative;
+        margin-top: 1rem;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .avatar-preview img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 15px;
+        border: 3px solid rgba(33, 150, 243, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .avatar-preview:hover img {
+        transform: scale(1.05);
+        border-color: #2196F3;
+    }
+
+    .role-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .role-option {
+        background: rgba(255, 255, 255, 0.07);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .role-option:hover {
+        background: rgba(33, 150, 243, 0.1);
+        border-color: #2196F3;
+        transform: translateY(-2px);
+    }
+
+    .role-option.selected {
+        background: rgba(33, 150, 243, 0.2);
+        border-color: #2196F3;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .error-feedback {
+        color: #ff4d4d;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        opacity: 0;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .page-container {
+            padding: 1rem;
+        }
+
+        .form-card {
+            border-radius: 15px;
+        }
+
+        .form-header {
+            padding: 1.5rem;
+        }
+
+        .form-body {
+            padding: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+        }
+
+        .role-selector {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

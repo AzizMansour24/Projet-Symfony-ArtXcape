@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--facture    -->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Facture #{{ 'ORD-' ~ orderId }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .invoice-info { 
+            margin-bottom: 30px;
+        }
+        .invoice-details {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .invoice-details th, .invoice-details td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .invoice-details th {
+            background-color: #f8f9fa;
+        }
+        .total {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FACTURE</h1>
+        <h2>#{{ 'ORD-' ~ orderId }}</h2>
+    </div>
+
+    <div class="invoice-info">
+        <p><strong>Date :</strong> {{ "now"|date("d/m/Y H:i") }}</p>
+        <p><strong>Client :</strong> {{ user.nom }} {{ user.prenom }}</p>
+    </div>
+
+    <table class="invoice-details">
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Prix unitaire</th>
+                <th>Quantité</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ article.titre }}</td>
+                <td>{{ article.prix }} Dt</td>
+                <td>{{ quantity }}</td>
+                <td>{{ totalAmount }} Dt</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total">
+        <h3>Total : {{ totalAmount }} Dt</h3>
+    </div>
+
+    <div class="footer">
+        <p>Merci de votre confiance !</p>
+    </div>
+</body>
+</html> 

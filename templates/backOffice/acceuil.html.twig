@@ -1,0 +1,73 @@
+{% extends 'base2.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+
+<div class="container mt-5">
+<br>
+<br>
+<br>
+
+
+    <h1 class="text-center">Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Articles</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ articleCount }}</h5>
+                    <p class="card-text">Total number of articles.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Likes</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ artLikeCount }}</h5>
+                    <p class="card-text">Total number of likes on articles.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">Bad Words</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ badWordCount }}</h5>
+                    <p class="card-text">Total number of bad words.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Candidatures</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ candidatureCount }}</h5>
+                    <p class="card-text">Total number of candidatures.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Candidature Offres</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ candidatureOffreCount }}</h5>
+                    <p class="card-text">Total number of candidatures for offers.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Categories</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ categorieCount }}</h5>
+                    <p class="card-text">Total number of categories.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Add more cards for other entities as needed -->
+</div>
+{% endblock %}

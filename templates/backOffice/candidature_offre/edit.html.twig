@@ -1,0 +1,14 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Modifier Candidature Offre{% endblock %}
+
+{% block body %}
+    <h1>Modifier Candidature Offre</h1>
+
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button class="btn">{{ button_label|default('Enregistrer') }}</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('backoffice_candidature_offre_index') }}">Retour à la liste</a>
+{% endblock %}

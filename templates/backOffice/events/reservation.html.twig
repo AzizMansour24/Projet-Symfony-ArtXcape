@@ -1,0 +1,377 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="card-body">
+<br><br><br>
+    <h2 class="card-title" style="color: white;">Gestion des Réservations</h2>
+    <p class="card-description">Liste de toutes les réservations</p>
+    <div class="mb-3">
+        <a href="#" class="btn btn-inverse-success btn-fw" onclick="exportToExcel()">Exporter Excel</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="background-color: white;">Id</th>
+                    <th style="background-color: white;">Nom Client</th>
+                    <th style="background-color: white;">Email</th>
+                    <th style="background-color: white;">Événement</th>
+                    <th style="background-color: white;">Nombre Places</th>
+                    <th style="background-color: white;">Prix Total</th>
+                    <th class="sortable" data-sort="date" style="background-color: white;">
+                        Date Réservation 
+                        <i class="mdi mdi-sort"></i>
+                    </th>
+                    <th style="background-color: white;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="reservationsTableBody">
+                {% for reservation in reservations %}
+                <tr>
+                    <td>{{ reservation.id_reservation }}</td>
+                    <td>{{ reservation.user ? reservation.user.nom : 'N/A' }}</td>
+                    <td>{{ reservation.user ? reservation.user.email : 'N/A' }}</td>
+                    <td><label class="badge badge-warning">{{ reservation.event.titre }}</label></td>
+                    <td><label class="badge badge-info">{{ reservation.seats }}</label></td>
+                    <td><label class="badge badge-success">{{ reservation.totalAmount }} DT</label></td>
+                    <td>{{ reservation.date|date('d M Y') }}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('delete_reservation', {'id': reservation.id_reservation}) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to cancel this reservation?')"
+                               title="Cancel">
+                                <i class="mdi mdi-close-circle"></i>
+                            </a>
+                            <a href="#" 
+                               class="btn btn-primary btn-sm"
+                               data-bs-toggle="modal" 
+                               data-bs-target="#editReservationModal"
+                               onclick="prepareEditModal({{ reservation.id_reservation }}, {{ reservation.seats }}, {{ reservation.event.seatprice }})"
+                               title="Edit">
+                                <i class="mdi mdi-pencil"></i>
+                            </a>
+                            <a href="#" 
+                               class="btn btn-info btn-sm"
+                               data-bs-toggle="modal" 
+                               data-bs-target="#detailsModal{{ reservation.id_reservation }}"
+                               title="Details">
+                                <i class="mdi mdi-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center">Aucune réservation trouvée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mt-4">
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                                <h3 class="mb-0">{{ totalAmount }} DT</h3>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="icon icon-box-success">
+                                <span class="mdi mdi-arrow-top-right icon-item"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="text-muted font-weight-normal">Total des réservations</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                                <h3 class="mb-0">{{ totalSeats }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="icon icon-box-info">
+                                <span class="mdi mdi-ticket-confirmation icon-item"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="text-muted font-weight-normal">Places réservées</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-9">
+                            <div class="d-flex align-items-center align-self-start">
+                                <h3 class="mb-0">{{ pendingCount }}</h3>
+                                <p class="text-warning ml-2 mb-0 font-weight-medium">En attente</p>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="icon icon-box-warning">
+                                <span class="mdi mdi-clock-outline icon-item"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <h6 class="text-muted font-weight-normal">Réservations en attente</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editReservationModalLabel">Modifier la Réservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editReservationForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="seats" class="form-label">Nombre de Places</label>
+                        <input type="number" class="form-control" id="seats" name="seats" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prix Total</label>
+                        <div id="totalPrice" class="form-control-plaintext"></div>
+                    </div>
+                    <input type="hidden" id="reservationId" name="reservationId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% for reservation in reservations %}
+<!-- Details Modal for each reservation -->
+<div class="modal fade" id="detailsModal{{ reservation.id_reservation }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ reservation.id_reservation }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="detailsModalLabel{{ reservation.id_reservation }}">
+                    <i class="mdi mdi-ticket-confirmation me-2"></i>
+                    Détails de la Réservation #{{ reservation.id_reservation }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Client Information -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-info h-100">
+                            <div class="card-header bg-info bg-opacity-10">
+                                <h5 class="mb-0"><i class="mdi mdi-account me-2"></i>Information Client</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Nom:</strong> {{ reservation.user ? reservation.user.nom : 'N/A' }}</p>
+                                <p><strong>Email:</strong> {{ reservation.user ? reservation.user.email : 'N/A' }}</p>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Information -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-warning h-100">
+                            <div class="card-header bg-warning bg-opacity-10">
+                                <h5 class="mb-0"><i class="mdi mdi-calendar-star me-2"></i>Information Événement</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Titre:</strong> {{ reservation.event.titre }}</p>
+                                <p><strong>Date:</strong> {{ reservation.event.dateEvenement|date('d/m/Y H:i') }}</p>
+                                <p><strong>Lieu:</strong> {{ reservation.event.lieu }}</p>
+                                <p><strong>Prix par place:</strong> {{ reservation.event.seatprice }} DT</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reservation Details -->
+                    <div class="col-md-12">
+                        <div class="card border-success">
+                            <div class="card-header bg-success bg-opacity-10">
+                                <h5 class="mb-0"><i class="mdi mdi-receipt me-2"></i>Détails de la Réservation</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Nombre de Places:</strong> 
+                                            <span class="badge bg-info">{{ reservation.seats }}</span>
+                                        </p>
+                                        <p><strong>Prix Total:</strong> 
+                                            <span class="badge bg-success">{{ reservation.totalAmount }} DT</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Date de Réservation:</strong> {{ reservation.date|date('d/m/Y H:i') }}</p>
+                                        <p><strong>Statut:</strong> 
+                                            <span class="badge bg-warning">En attente</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script>
+let currentSeatPrice = 0;
+
+function prepareEditModal(id, seats, seatPrice) {
+    document.getElementById('reservationId').value = id;
+    document.getElementById('seats').value = seats;
+    currentSeatPrice = seatPrice;
+    
+    // Update form action
+    document.getElementById('editReservationForm').action = "{{ path('edit_reservation', {'id': 'PLACEHOLDER'}) }}".replace('PLACEHOLDER', id);
+    
+    // Calculate and show initial total
+    updateTotal(seats);
+}
+
+function updateTotal(seats) {
+    const total = seats * currentSeatPrice;
+    document.getElementById('totalPrice').textContent = total.toFixed(2) + ' DT';
+}
+
+// Add input event listener to seats input
+document.getElementById('seats').addEventListener('input', function(e) {
+    updateTotal(this.value);
+});
+
+document.getElementById('editReservationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error updating reservation');
+        }
+    });
+});
+
+// Add this new sorting code
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('reservationsTableBody');
+    const sortableHeaders = document.querySelectorAll('th.sortable');
+    let sortDirection = 'asc';
+
+    sortableHeaders.forEach(header => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => {
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            const sortType = header.dataset.sort;
+
+            rows.sort((a, b) => {
+                let dateA, dateB;
+                if (sortType === 'date') {
+                    dateA = new Date(a.cells[6].textContent.trim());
+                    dateB = new Date(b.cells[6].textContent.trim());
+                    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+                }
+                return 0;
+            });
+
+            // Toggle sort direction
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            
+            // Update sort icon
+            const icon = header.querySelector('i');
+            icon.className = `mdi mdi-sort-${sortDirection === 'asc' ? 'ascending' : 'descending'}`;
+
+            // Clear the table body
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+
+            // Add sorted rows back
+            rows.forEach(row => tableBody.appendChild(row));
+        });
+    });
+});
+
+function exportToExcel() {
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const table = document.querySelector('.table');
+    
+    // Prepare the data
+    let data = [];
+    
+    // Add headers
+    const headers = [];
+    table.querySelectorAll('thead th').forEach(th => {
+        if (th.textContent.trim() !== 'Actions') {
+            headers.push(th.textContent.trim());
+        }
+    });
+    data.push(headers);
+    
+    // Add data rows
+    table.querySelectorAll('tbody tr').forEach(tr => {
+        const row = [];
+        tr.querySelectorAll('td').forEach((td, index) => {
+            // Skip the last column (Actions)
+            if (index < tr.cells.length - 1) {
+                row.push(td.textContent.trim());
+            }
+        });
+        if (row.length > 0) {
+            data.push(row);
+        }
+    });
+    
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    // Set column widths
+    const colWidths = headers.map(h => ({wch: Math.max(h.length, 15)}));
+    ws['!cols'] = colWidths;
+    
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Réservations");
+    
+    // Generate Excel file and trigger download
+    XLSX.writeFile(wb, "reservations.xlsx");
+}
+</script>
+{% endblock %}

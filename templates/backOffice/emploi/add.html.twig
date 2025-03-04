@@ -1,0 +1,95 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm border-0 w-75">
+        <div class="card-header border-0 text-center">
+            <h1 class="card-title mb-0">Ajouter une nouvelle offre d'emploi</h1>
+        </div>
+        <div class="card-body p-4">
+            {# Add novalidate to the form tag #}
+            {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
+
+            {# Titre Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Titre</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le titre de l\'offre'}}) }}
+                    {{ form_errors(form.titre) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            {# Description Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Description</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Décrivez l\'offre en détail'}}) }}
+                    {{ form_errors(form.description) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            {# Compétences Requises Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Compétences requises</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.competences_requises, {'attr': {'class': 'form-control', 'placeholder': 'Listez les compétences nécessaires'}}) }}
+                    {{ form_errors(form.competences_requises) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            {# Budget Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Budget</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.budget, {'attr': {'class': 'form-control', 'placeholder': 'Indiquez le budget'}}) }}
+                    {{ form_errors(form.budget) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            {# Lieu Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Lieu</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.lieu, {'attr': {'class': 'form-control', 'placeholder': 'Indiquez le lieu de travail'}}) }}
+                    {{ form_errors(form.lieu) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            
+            {# Statut Field #}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Statut</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.statut) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+
+            {# User Field (if applicable) #}
+            {% if form.user is defined %}
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Utilisateur</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.user, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.user) }} {# Symfony validation errors will appear here #}
+                </div>
+            </div>
+            {% endif %}
+
+            {# Form Actions #}
+            <div class="form-group row">
+                <div class="col-sm-9 offset-sm-3">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-plus-circle mr-2"></i>Ajouter l'offre
+                    </button>
+                    <a href="{{ path('backoffice_emploi') }}" class="btn btn-outline-secondary btn-block mt-3">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                </div>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

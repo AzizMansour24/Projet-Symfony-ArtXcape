@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Candidatures{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-bottom"> 
+                <h1 class="card-title h4 fw-bold text-dark mb-0">Liste des Candidatures</h1>
+                <p class="card-subtitle text-muted small mt-1">Voici la liste des candidatures soumises.</p>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Candidat</th>
+                            <th>Lettre de Motivation</th>
+                            <th>Offre d'Emploi</th>
+                            <th>CV</th>
+                        
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidatureOffre in candidatureOffres %}
+                            <tr>
+                                <td>{{ candidatureOffre.candidat.nom }} {{ candidatureOffre.candidat.prenom }}</td>
+                                <td>{{ candidatureOffre.lettreMotivation }}</td>
+                                <td>{{ candidatureOffre.emploi.titre }}</td>
+                                <td>
+                                    {% if candidatureOffre.cv %}
+                                        <a href="{{ asset('uploads/cvs/' ~ candidatureOffre.cv) }}" target="_blank" class="btn btn-link">Voir CV</a>
+                                    {% else %}
+                                        Pas de CV soumis
+                                    {% endif %}
+                                </td>
+                                
+                                <td>
+                                    <a href="{{ path('candidatureoffre_show', {'id': candidatureOffre.id}) }}" class="btn btn-primary">Voir</a>
+                                    <a href="{{ path('candidatureoffre_edit', {'id': candidatureOffre.id}) }}" class="btn btn-warning">Modifier</a>
+                                    <a href="{{ path('candidatureoffre_delete', {'id': candidatureOffre.id}) }}" class="btn btn-danger">Supprimer</a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center">Aucune candidature soumise.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

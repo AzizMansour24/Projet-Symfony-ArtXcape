@@ -1,0 +1,409 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <br></br><br></br>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Historique des Likes</h1>
+        </div>
+    </div>
+
+    <!-- Barre d'outils (recherche et boutons) -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="search-box">
+                <i class="mdi mdi-magnify search-icon"></i>
+                <input type="text" id="searchInputLike" class="form-control" placeholder="Rechercher...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="row">
+        <div class="col-md-6 text-end">
+            <button id="exportPdfBtn" class="btn btn-inverse-success btn-fw">
+                <i class="mdi mdi-file-pdf me-2"></i>Export PDF
+            </button>
+        </div>
+        <!-- Tableau des likes (pleine largeur) -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="likesTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0, 'likesTable', 'number')">ID <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(1, 'likesTable', 'text')">Utilisateur <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(2, 'likesTable', 'text')">Article <i class="mdi mdi-sort"></i></th>
+                                    <th onclick="sortTable(3, 'likesTable', 'date')">Date du Like <i class="mdi mdi-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for like in likes %}
+                                <tr>
+                                    <td>{{ like.id }}</td>
+                                    <td>{{ like.user.nom }} {{ like.user.prenom }} (ID: {{ like.user.id }})</td>
+                                    <td>{{ like.article.titre }} (ID: {{ like.article.id }})</td>
+                                    <td>{{ like.likedAt|date('Y-m-d H:i:s') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button id="prevPage" class="btn btn-outline-secondary">Précédent</button>
+                        <span id="pagination-info" class="fw-bold"></span>
+                        <button id="nextPage" class="btn btn-outline-secondary">Suivant</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 3 des articles les plus likés -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Top 3 des Articles les Plus Likés</h4>
+                    <div class="top-articles-container">
+                        <div class="top-articles">
+                            {% for article in topArticles %}
+                                <div class="top-article-card position-{{ loop.index }}">
+                                    <div class="rank">{{ loop.index }}</div>
+                                    <div class="article-info">
+                                        <h5>{{ article.titre }}</h5>
+                                        <p class="likes-count">
+                                            <i class="mdi mdi-heart text-danger"></i>
+                                            {{ article.count }} likes
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .search-box {
+        position: relative;
+    }
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+    #searchInputLike {
+        padding-left: 35px;
+    }
+    .card {
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: none;
+    }
+    .table th {
+        background-color: #f8f9fa;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .filtered-out {
+        display: none !important;
+    }
+
+    /* Styles pour le Top 3 */
+    .top-articles {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 20px;
+        padding: 20px;
+        height: 300px;
+    }
+
+    .top-article-card {
+        position: relative;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        width: 250px;
+    }
+
+    .top-article-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .top-article-card .rank {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2em;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .position-1 {
+        height: 200px;
+        background: linear-gradient(145deg, #ffd700, #ffc800);
+        color: #000;
+    }
+
+    .position-2 {
+        height: 180px;
+        background: linear-gradient(145deg, #c0c0c0, #b0b0b0);
+        color: #000;
+    }
+
+    .position-3 {
+        height: 160px;
+        background: linear-gradient(145deg, #cd7f32, #e8935a);
+        color: #000;
+    }
+
+    .article-info {
+        margin-top: 25px;
+    }
+
+    .article-info h5 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .likes-count {
+        font-size: 1.1em;
+        margin: 0;
+    }
+
+    .likes-count i {
+        margin-right: 5px;
+    }
+
+    /* Animation pour les cartes */
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .top-article-card {
+        animation: slideUp 0.5s ease forwards;
+    }
+
+    .position-1 { animation-delay: 0.1s; }
+    .position-2 { animation-delay: 0.3s; }
+    .position-3 { animation-delay: 0.5s; }
+</style>
+
+<!-- Scripts -->
+<script>
+let currentPage = 1;
+const rowsPerPage = 10;
+
+// Fonction de recherche
+document.getElementById('searchInputLike').addEventListener('keyup', function() {
+    let searchText = this.value.toLowerCase();
+    let tableRows = document.querySelectorAll('#likesTable tbody tr');
+    let hasResults = false;
+    
+    tableRows.forEach(row => {
+        let text = row.textContent.toLowerCase();
+        if(text.includes(searchText)) {
+            row.classList.remove('filtered-out');
+            hasResults = true;
+        } else {
+            row.classList.add('filtered-out');
+        }
+    });
+    
+    currentPage = 1;
+    updatePagination();
+});
+
+function updatePagination() {
+    const table = document.getElementById("likesTable");
+    const rows = Array.from(table.getElementsByTagName("tbody")[0].getElementsByTagName("tr"));
+    const visibleRows = rows.filter(row => !row.classList.contains('filtered-out'));
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    
+    visibleRows.forEach((row, index) => {
+        row.style.display = (index >= (currentPage - 1) * rowsPerPage && index < currentPage * rowsPerPage) 
+            ? "" 
+            : "none";
+    });
+    
+    document.getElementById("pagination-info").textContent = `Page ${currentPage} / ${totalPages || 1}`;
+    document.getElementById("prevPage").disabled = currentPage === 1;
+    document.getElementById("nextPage").disabled = currentPage === totalPages || totalPages === 0;
+}
+
+document.getElementById("prevPage").addEventListener("click", function() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+});
+
+document.getElementById("nextPage").addEventListener("click", function() {
+    const visibleRows = Array.from(document.querySelectorAll('#likesTable tbody tr'))
+        .filter(row => !row.classList.contains('filtered-out'));
+    const totalPages = Math.ceil(visibleRows.length / rowsPerPage);
+    
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+});
+
+// Tri des colonnes
+let sortDirection = {};
+
+function sortTable(columnIndex, tableId, type) {
+    const table = document.getElementById(tableId);
+    const tbody = table.getElementsByTagName('tbody')[0];
+    const rows = Array.from(tbody.getElementsByTagName('tr'));
+    
+    sortDirection[columnIndex] = !sortDirection[columnIndex];
+    
+    const compare = (a, b) => {
+        let valueA = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+        let valueB = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+        
+        switch(type) {
+            case 'number':
+                valueA = parseFloat(valueA) || 0;
+                valueB = parseFloat(valueB) || 0;
+                break;
+            case 'date':
+                valueA = new Date(valueA);
+                valueB = new Date(valueB);
+                break;
+            default:
+                valueA = valueA.toLowerCase();
+                valueB = valueB.toLowerCase();
+        }
+        
+        if (valueA < valueB) return sortDirection[columnIndex] ? -1 : 1;
+        if (valueA > valueB) return sortDirection[columnIndex] ? 1 : -1;
+        return 0;
+    };
+    
+    rows.sort(compare);
+    rows.forEach(row => tbody.appendChild(row));
+    
+    currentPage = 1;
+    updatePagination();
+}
+
+// Initialisation
+document.addEventListener("DOMContentLoaded", function() {
+    updatePagination();
+});
+</script>
+
+<!-- Script pour l'export PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    const currentPageBackup = currentPage;
+    
+    const rows = document.querySelectorAll('#likesTable tbody tr');
+    const visibleRows = Array.from(rows).filter(row => !row.classList.contains('filtered-out'));
+    visibleRows.forEach(row => row.style.display = '');
+
+    const table = document.getElementById("likesTable");
+    const today = new Date();
+
+    const pdfContainer = document.createElement('div');
+    pdfContainer.innerHTML = `
+        <div style="padding: 20px; font-family: Arial, sans-serif;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #333; margin-bottom: 10px;">Historique des Likes</h1>
+                <p style="color: #666;">Généré le ${today.toLocaleDateString('fr-FR')}</p>
+                <hr style="border: 1px solid #eee; margin: 20px 0;">
+            </div>
+            ${table.outerHTML}
+        </div>
+    `;
+
+    const tableElement = pdfContainer.querySelector('table');
+    tableElement.style.width = '100%';
+    tableElement.style.borderCollapse = 'collapse';
+    tableElement.style.marginBottom = '20px';
+
+    Array.from(tableElement.getElementsByTagName("tr")).forEach((row, index) => {
+        Array.from(row.getElementsByTagName(index === 0 ? "th" : "td")).forEach(cell => {
+            cell.style.padding = '8px 12px';
+            cell.style.border = '1px solid #ddd';
+            if (index === 0) {
+                cell.style.backgroundColor = '#f8f9fa';
+                cell.style.color = '#333';
+                cell.style.fontWeight = 'bold';
+            }
+        });
+    });
+
+    const opt = {
+        margin: [0.5, 0.5],
+        filename: `likes-history-${today.toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    const button = document.getElementById('exportPdfBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Génération en cours...';
+    button.disabled = true;
+
+    html2pdf().set(opt).from(pdfContainer).save()
+    .then(() => {
+        currentPage = currentPageBackup;
+        updatePagination();
+        button.innerHTML = originalText;
+        button.disabled = false;
+    })
+    .catch(error => {
+        console.error('Erreur lors de la génération du PDF:', error);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        currentPage = currentPageBackup;
+        updatePagination();
+    });
+}
+
+document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+</script>
+{% endblock %}

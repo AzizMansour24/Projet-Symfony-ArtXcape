@@ -1,0 +1,170 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Détails de la Candidature{% endblock %}
+
+{% block body %}
+    <div class="container-fluid px-4">
+        {# En-tête avec statut #}
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+            <h1 class="mb-0">
+                <i class="fas fa-file-alt me-2"></i>Détails de la Candidature
+            </h1>
+            <span class="badge fs-5 {% if candidature.etatCandidature == 'En attente' %}bg-warning
+                          {% elseif candidature.etatCandidature == 'Acceptée' %}bg-success
+                          {% else %}bg-danger{% endif %}">
+                <i class="fas {% if candidature.etatCandidature == 'En attente' %}fa-clock
+                             {% elseif candidature.etatCandidature == 'Acceptée' %}fa-check-circle
+                             {% else %}fa-times-circle{% endif %} me-1"></i>
+                {{ candidature.etatCandidature }}
+            </span>
+        </div>
+
+        <div class="row">
+            {# Colonne de gauche #}
+            <div class="col-lg-8">
+                {# Informations du Candidat #}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-user me-1"></i> Informations du Candidat
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-id-card me-2 text-primary"></i>
+                                    <span><strong>Nom complet :</strong> {{ candidature.candidat.nom }} {{ candidature.candidat.prenom }}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>
+                                    <span><strong>Email :</strong> {{ candidature.candidat.email }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-calendar me-2 text-primary"></i>
+                                    <span><strong>Date de candidature :</strong> {{ candidature.datePostulation|date('d/m/Y H:i') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Détails de la Candidature #}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-file-alt me-1"></i> Contenu de la Candidature
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h5 class="text-info">
+                                <i class="fas fa-tools me-2"></i>Compétences
+                            </h5>
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-dark" style="white-space: pre-line;">
+                                    {{ candidature.competences|nl2br }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="text-info">
+                                <i class="fas fa-pen me-2"></i>Lettre de Motivation
+                            </h5>
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-dark" style="white-space: pre-line;">
+                                    {{ candidature.lettreMotivation|nl2br }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if candidature.cv %}
+                            <div>
+                                <h5 class="text-info">
+                                    <i class="fas fa-file-pdf me-2"></i>CV
+                                </h5>
+                                <div class="btn-group">
+                                    <a href="{{ path('download_cv', {'filename': candidature.cv}) }}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-download me-1"></i> Télécharger
+                                    </a>
+                                    <a href="{{ asset('uploads/cv/' ~ candidature.cv) }}" 
+                                       class="btn btn-outline-info" 
+                                       target="_blank">
+                                        <i class="fas fa-eye me-1"></i> Visualiser
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Colonne de droite #}
+            <div class="col-lg-4">
+                {# Détails de l'Offre #}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-briefcase me-1"></i> Détails de l'Offre
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ candidature.emploi.titre }}</h5>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                            <span><strong>Lieu :</strong> {{ candidature.emploi.lieu }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                            <span><strong>Budget :</strong> {{ candidature.emploi.budget }} DT</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Actions #}
+                {% if candidature.etatCandidature == 'En attente' %}
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-warning text-dark">
+                            <i class="fas fa-tasks me-1"></i> Actions Disponibles
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        class="btn btn-success btn-lg" 
+                                        onclick="updateStatus({{ candidature.id }}, 'Acceptée')">
+                                    <i class="fas fa-check-circle me-1"></i> Accepter la candidature
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-danger btn-lg" 
+                                        onclick="updateStatus({{ candidature.id }}, 'Refusée')">
+                                    <i class="fas fa-times-circle me-1"></i> Refuser la candidature
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <a href="{{ path('backoffice_candidatures') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function updateStatus(id, status) {
+            if (confirm('Êtes-vous sûr de vouloir ' + (status === 'Acceptée' ? 'accepter' : 'refuser') + ' cette candidature ?')) {
+                fetch(`/backoffice/candidature/${id}/update-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `status=${status}`
+                }).then(() => window.location.reload());
+            }
+        }
+    </script>
+{% endblock %}

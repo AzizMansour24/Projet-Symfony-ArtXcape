@@ -1,0 +1,174 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Gestion des Offres d'Emploi{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    {# Messages Flash #}
+    <div class="messages mb-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                    {% if label == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elseif label == 'error' or label == 'danger' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elseif label == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% elseif label == 'info' %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+<br></br><br></br>
+    <h1 class="mb-4">Jobs <span class="text-muted">{{ emplois|length }} résultats</span></h1>
+
+    {# Statistiques Avancées #}
+    <div class="mb-4">
+        <h2 class="h4">Statistiques Avancées</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-briefcase"></i> Total d'emplois</h5>
+                        <p class="card-text">{{ emplois|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-check-circle"></i> Emplois ouverts</h5>
+                        <p class="card-text">{{ emplois|filter(emploi => emploi.statut == 'Ouvert')|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-times-circle"></i> Emplois fermés</h5>
+                        <p class="card-text">{{ emplois|filter(emploi => emploi.statut == 'Fermé')|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Simple Filter Panel #}
+    <form method="GET" action="{{ path('backoffice_emploi') }}" class="mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    {# Search #}
+                    <div class="col-md-3">
+                        <label class="form-label">Recherche</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Titre, description..." 
+                               value="{{ app.request.query.get('search') }}">
+                    </div>
+
+                    {# Budget maximum #}
+                    <div class="col-md-3">
+                        <label class="form-label">Budget maximum</label>
+                        <input type="number" name="budget_max" class="form-control" 
+                               placeholder="Budget max" 
+                               value="{{ app.request.query.get('budget_max') }}">
+                    </div>
+
+                    {# Lieu #}
+                    <div class="col-md-3">
+                        <label class="form-label">Lieu</label>
+                        <input type="text" name="lieu" class="form-control" 
+                               placeholder="Lieu" 
+                               value="{{ app.request.query.get('lieu') }}">
+                    </div>
+
+                     {# Statut #}
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-filter"></i> Statut</label>
+                    <select name="statut" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="Ouvert" {{ app.request.query.get('statut') == 'Ouvert' ? 'selected' : '' }}>Ouvert</option>
+                        <option value="Fermé" {{ app.request.query.get('statut') == 'Fermé' ? 'selected' : '' }}>Fermé</option>
+                        <option value="En cours" {{ app.request.query.get('statut') == 'En cours' ? 'selected' : '' }}>En cours</option>
+                    </select>
+                </div>
+            </div>
+
+                {# Buttons #}
+                <div class="row mt-3">
+                    <div class="col-12 text-end">
+                        <a href="{{ path('backoffice_emploi') }}" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Réinitialiser
+                        </a>
+                        <button type="submit" class="btn btn-primary ms-2">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    {# Add Job Button #}
+    <div class="mb-4">
+        <a href="{{ path('backoffice_emploi_add') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter une offre
+        </a>
+    </div>
+
+    {# Job Listings #}
+    <div class="list-group">
+        {% for emploi in emplois %}
+            <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 border-0 shadow-sm">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="mb-1">{{ emploi.titre }}</h5>
+                        <p class="mb-1 text-muted">{{ emploi.description|slice(0, 100) ~ '...' }}</p>
+                        <small class="text-muted">
+                            <strong>Lieu :</strong> {{ emploi.lieu }}<br>
+                            <strong>Budget :</strong> {{ emploi.budget }} DT<br>
+                            <strong>Statut :</strong> 
+                            <span class="badge" style="background-color: {% if emploi.statut == 'Ouvert' %}#28a745{% elseif emploi.statut == 'Fermé' %}#dc3545{% else %}#ffc107{% endif %}; 
+                             color: {% if emploi.statut == 'En cours' %}#000{% else %}#fff{% endif %}; 
+                             padding: 5px 10px;
+                             border-radius: 4px;
+                             font-weight: 500;
+                             font-size: 12px;">
+                                {{ emploi.statut }}
+                            </span>
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <div class="btn-group">
+                            <a href="{{ path('backoffice_emploi_show', {'id': emploi.id}) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            <a href="{{ path('backoffice_emploi_edit', {'id': emploi.id}) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Éditer
+                            </a>
+                            <form method="post" action="{{ path('backoffice_emploi_delete', {'id': emploi.id}) }}" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ?');" 
+                                  style="display: inline-block;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ emploi.id) }}">
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="list-group-item">
+                <p class="text-center text-muted">Aucune offre d'emploi disponible.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

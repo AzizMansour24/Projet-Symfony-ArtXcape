@@ -1,0 +1,93 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="main-panel">
+    <div class="content-wrapper">
+        <div class="page-header">
+            <h3 class="page-title">Nouvelle Formation</h3>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('back_newformation') }}">Formations</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Nouvelle Formation</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="row"> 
+            <div class="col-12 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Informations de la formation</h4>
+                        <p class="card-description">Remplissez les informations ci-dessous pour créer une nouvelle formation.</p>
+
+                        {{ form_start(form, {'attr': {'class': 'forms-sample'}}) }}
+                            <div class="form-group">
+                                {{ form_label(form.titre) }}
+                                {{ form_widget(form.titre) }}
+                                {{ form_errors(form.titre, {'attr': {'class': 'text-danger'}}) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.description) }}
+                                {{ form_widget(form.description) }}
+                                {{ form_errors(form.description, {'attr': {'class': 'text-danger'}}) }}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.date_debut) }}
+                                        {{ form_widget(form.date_debut) }}
+                                        {{ form_errors(form.date_debut, {'attr': {'class': 'text-danger'}}) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.date_fin) }}
+                                        {{ form_widget(form.date_fin) }}
+                                        {{ form_errors(form.date_fin, {'attr': {'class': 'text-danger'}}) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.nbrpart) }}
+                                        {{ form_widget(form.nbrpart) }}
+                                        {{ form_errors(form.nbrpart, {'attr': {'class': 'text-danger'}}) }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        {{ form_label(form.prix) }}
+                                        {{ form_widget(form.prix) }}
+                                        {{ form_errors(form.prix, {'attr': {'class': 'text-danger'}}) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.video) }}
+                                {{ form_widget(form.video) }}
+                                {{ form_errors(form.video, {'attr': {'class': 'text-danger'}}) }}
+                            </div>
+
+                            <div class="form-group">
+                                {{ form_label(form.categorie) }}
+                                {{ form_widget(form.categorie) }}
+                                {{ form_errors(form.categorie, {'attr': {'class': 'text-danger'}}) }}
+                            </div>
+
+                            <div class="mt-3">
+                                <a href="{{ path('back_newformation') }}" class="btn btn-light">Annuler</a>
+                                {{ form_widget(form.save) }}
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

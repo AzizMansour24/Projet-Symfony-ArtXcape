@@ -1,0 +1,39 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Candidature Offres{% endblock %}
+
+{% block body %}
+    <h1>Candidature Offres</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Candidat</th>
+                <th>Offre</th>
+                <th>Statut</th>
+                <th>Date Association</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for candidatureOffre in candidatureOffres %}
+            <tr>
+                <td>{{ candidatureOffre.id }}</td>
+                <td>{{ candidatureOffre.candidature.candidat }}</td>
+                <td>{{ candidatureOffre.emploi.titre }}</td>
+                <td>{{ candidatureOffre.statut }}</td>
+                <td>{{ candidatureOffre.dateAssociation|date('Y-m-d H:i:s') }}</td>
+                <td>
+                    <a href="{{ path('backoffice_candidature_offre_show', {'id': candidatureOffre.id}) }}">Voir</a>
+                    <a href="{{ path('backoffice_candidature_offre_edit', {'id': candidatureOffre.id}) }}">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucune candidature trouvée</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

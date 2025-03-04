@@ -1,0 +1,1414 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Offres d'Emploi{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- Shepherd.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/css/shepherd.css"/>
+    <style>
+        .keywords-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px; 
+            border: 1px solid #e9ecef;
+        }
+
+        .keywords-header {
+            color: #495057;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .keywords-header .fas.fa-lightbulb {
+            font-size: 1.1rem;
+        }
+
+        .toggle-keywords {
+            color: #6c757d;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-keywords.active {
+            transform: rotate(180deg);
+        }
+
+        .keywords-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .keyword-item {
+            background-color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .keyword-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-color: #dee2e6;
+        }
+
+        .keyword-item .fas {
+            font-size: 0.8rem;
+        }
+
+        .shepherd-button {
+            background: #3498db;
+            border: 0;
+            border-radius: 3px;
+            color: white;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .shepherd-button:not(:disabled):hover {
+            background: #2980b9;
+        }
+
+        .shepherd-button.shepherd-button-secondary {
+            background: #95a5a6;
+        }
+
+        .shepherd-button.shepherd-button-secondary:not(:disabled):hover {
+            background: #7f8c8d;
+        }
+
+        .shepherd-modal-overlay-container {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Styles pour le guide */
+        .shepherd-wide {
+            max-width: 600px !important;
+        }
+
+        .shepherd-text h3 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .shepherd-text h4 {
+            color: #34495e;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        .shepherd-text ul, .shepherd-text ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .shepherd-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        .shepherd-text .alert {
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+        }
+
+        .shepherd-text .alert-info {
+            background-color: #e8f4f8;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
+        .shepherd-text .alert-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .shepherd-text .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+
+        .shepherd-text i {
+            margin-right: 0.5rem;
+        }
+
+        .guide-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .guide-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #3498db;
+            transform: scale(1.2);
+        }
+
+        .step-counter {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .guide-popup {
+            min-width: 320px;
+            max-width: 400px;
+        }
+
+        .guide-popup {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 25px;
+            width: 400px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1050;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .guide-content {
+            margin: 20px 0;
+        }
+
+        .guide-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .guide-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .guide-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-2px);
+            background: #e9ecef;
+        }
+
+        .guide-tip {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+
+        .guide-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .guide-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guide-button.primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .guide-button.primary:hover {
+            background: #2980b9;
+        }
+
+        .guide-button.secondary {
+            background: #e9ecef;
+            color: #2c3e50;
+        }
+
+        .guide-button.secondary:hover {
+            background: #dee2e6;
+        }
+
+        .guide-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .progress-dot.active {
+            background: #3498db;
+            transform: scale(1.2);
+        }
+
+        .step-counter {
+            font-size: 1rem;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1040;
+            backdrop-filter: blur(3px);
+        }
+
+        .highlighted-element {
+            position: relative;
+            z-index: 1045;
+            animation: highlight-pulse 2s infinite;
+        }
+
+        .job-stats {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-item {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .stat-item.recent {
+            color: #2ecc71;
+            font-weight: 500;
+        }
+
+        .stat-item.daily {
+            color: #3498db;
+        }
+
+        .stat-item i {
+            font-size: 1.1rem;
+        }
+
+        .stat-update {
+            margin-top: 10px;
+            text-align: right;
+            font-size: 0.8rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .stat-item.recent {
+            animation: pulse 2s infinite;
+        }
+
+        .stats-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            padding: 8px;
+            border-radius: 6px;
+            background: white;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-item.recent {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .stat-item.daily {
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-item.total {
+            border-left: 4px solid #95a5a6;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        
+        .alert-info {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <!--==============================
+    Breadcumb
+    ============================== -->
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Liste des Offres d'Emploi</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move messages button to a fixed position on the left -->
+    {% if app.user %}
+        <a href="{{ path('messages_index') }}" class="btn btn-primary position-fixed" style="bottom: 20px; left: 20px; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <i class="fas fa-comments fa-lg"></i>
+            
+        </a>
+    {% endif %}
+
+    <div class="container mt-5">
+        <!-- Messages Flash -->
+        <div class="messages mb-4">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                        {% if label == 'success' %}
+                            <i class="fas fa-check-circle me-2"></i>
+                        {% elseif label == 'error' or label == 'danger' %}
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                        {% elseif label == 'warning' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% elseif label == 'info' %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <!-- Add Search Form -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form method="GET" action="{{ path('app_emploi') }}" class="row g-3">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="search" class="form-label">Recherche</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search }}" placeholder="Titre, description...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="budget" class="form-label">Budget maximum</label>
+                            <input type="number" class="form-control" id="budget" name="budget" 
+                                   value="{{ budget }}" placeholder="Budget max">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="lieu" class="form-label">Lieu</label>
+                            <input type="text" class="form-control" id="lieu" name="lieu" 
+                                   value="{{ lieu }}" placeholder="Lieu">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="statut" class="form-label">Statut</label>
+                            <select class="form-control" id="statut" name="statut">
+                                <option value="">Tous</option>
+                                <option value="Ouvert" {% if statut == 'Ouvert' %}selected{% endif %}>Ouvert</option>
+                                <option value="Fermé" {% if statut == 'Fermé' %}selected{% endif %}>Fermé</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                        <a href="{{ path('app_emploi') }}" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Réinitialiser
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for emploi in emplois %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark">{{ emploi.titre }}</h5>
+                            <div class="keywords-container mb-3">
+                                <div class="keywords-header d-flex align-items-center">
+                                    <i class="fas fa-lightbulb text-warning me-2"></i>
+                                    <span class="text-muted">Mots clés pertinents</span>
+                                    <button class="btn btn-link btn-sm ms-auto p-0 toggle-keywords" 
+                                            onclick="toggleKeywords(this, '{{ emploi.id }}')"
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="Afficher/Masquer les mots clés">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <div class="keywords-content" id="keywords-{{ emploi.id }}" style="display: none;">
+                                    <div class="keywords-grid mt-2">
+                                        {% set keywords = nlp_extract_keywords(emploi.titre, emploi.description, emploi.competencesRequises) %}
+                                        {% for keyword in keywords %}
+                                            <div class="keyword-item">
+                                                <i class="fas fa-check-circle text-success me-1"></i>
+                                                {{ keyword }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ emploi.lieu }}</h6>
+                            <p class="card-text text-secondary">{{ emploi.description|slice(0, 100) }}...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">{{ emploi.statut }}</span>
+                            </div>
+                            <div class="mt-3">
+                                <strong>Compétences Requises :</strong> 
+                                <span class="text-muted">{{ emploi.competencesRequises|slice(0, 50) }}...</span>
+                            </div>
+                            <div class="mt-2">
+                                <strong>Budget :</strong> 
+                                <span class="text-success fw-bold">{{ emploi.budget ? emploi.budget ~ ' DT' : 'Non spécifié' }}</span>
+                            </div>
+                            <div class="mt-3 border-top pt-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                                    <strong>Statistiques des candidatures</strong>
+                                </div>
+                                <div id="stats-{{ emploi.id }}" class="stats-container">
+                                    <div class="text-center py-2">
+                                        <i class="fas fa-spinner fa-spin"></i> 
+                                        Chargement des statistiques...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ path('emploi_show', {'id': emploi.id}) }}" class="btn btn-sm btn-outline-dark">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                {% if app.user and emploi.user == app.user %}
+                                    <a href="{{ path('emploi_edit', {'id': emploi.id}) }}" class="btn btn-sm btn-outline-dark">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </a>
+                                    <form action="{{ path('emploi_delete', {'id': emploi.id}) }}" method="post" style="display:inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ emploi.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> Aucune offre d'emploi ne correspond à vos critères de recherche.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{{ path('emploi_add') }}" class="btn btn-lg btn-outline-dark">
+                <i class="fas fa-plus"></i> Ajouter une Offre
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuration des étapes du guide
+            const steps = [
+                {
+                    title: 'Bienvenue sur ArtXcape Emploi',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <p class="guide-description">Découvrez toutes les fonctionnalités de notre plateforme d'emploi artistique.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-search"></i>
+                                <span>Recherche d'emploi</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Publication d'offres</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-tasks"></i>
+                                <span>Gestion des candidatures</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '.breadcumb-content'
+                },
+                {
+                    title: 'Filtres de Recherche',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-filter"></i>
+                        </div>
+                        <p class="guide-description">Utilisez nos filtres avancés pour affiner votre recherche.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-search"></i>
+                                <span>Recherche par mots-clés</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-money-bill"></i>
+                                <span>Filtre par budget</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Filtre par lieu</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '.card.mb-4.shadow-sm'
+                },
+                {
+                    title: 'Recherche par Mots-clés',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                        <p class="guide-description">Trouvez rapidement les offres qui vous correspondent.</p>
+                        <div class="guide-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Exemple : "Designer", "3D Artist", "Illustrateur"</span>
+                        </div>
+                    </div>`,
+                    element: '#search'
+                },
+                {
+                    title: 'Filtre Budget',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <p class="guide-description">Définissez votre fourchette de salaire.</p>
+                        <div class="guide-tip">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Les montants sont en Dinars Tunisiens (DT)</span>
+                        </div>
+                    </div>`,
+                    element: '#budget'
+                },
+                {
+                    title: 'Localisation',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <p class="guide-description">Filtrez les offres par zone géographique.</p>
+                        <div class="location-options">
+                            <div class="option-item">
+                                <i class="fas fa-building"></i>
+                                <span>Sur site</span>
+                            </div>
+                            <div class="option-item">
+                                <i class="fas fa-home"></i>
+                                <span>Télétravail</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '#lieu'
+                },
+                {
+                    title: 'Statut des Offres',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-toggle-on"></i>
+                        </div>
+                        <p class="guide-description">Filtrez selon la disponibilité des offres.</p>
+                        <div class="status-options">
+                            <div class="status-item active">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Offres ouvertes</span>
+                            </div>
+                            <div class="status-item">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Offres fermées</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '#statut'
+                },
+                {
+                    title: 'Affichage des Offres',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-th-large"></i>
+                        </div>
+                        <p class="guide-description">Consultez les offres d'emploi disponibles.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Détails de l'offre</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-tags"></i>
+                                <span>Mots-clés pertinents</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '.card.h-100.border-0.shadow-sm'
+                },
+                {
+                    title: 'Mots-clés Intelligents',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <p class="guide-description">Chaque offre dispose de mots-clés extraits automatiquement pour faciliter votre recherche.</p>
+                        <div class="guide-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Cliquez sur la flèche pour voir les mots-clés pertinents de chaque offre</span>
+                        </div>
+                    </div>`,
+                    element: '.keywords-container'
+                },
+                {
+                    title: 'Actions sur les Offres',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <p class="guide-description">Gérez vos offres d'emploi facilement avec nos outils intégrés.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-eye"></i>
+                                <span>Voir les détails</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-edit"></i>
+                                <span>Modifier une offre</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-trash"></i>
+                                <span>Supprimer une offre</span>
+                            </div>
+                        </div>
+                    </div>`,
+                    element: '.card-footer'
+                },
+                {
+                    title: 'Messagerie Intégrée',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <p class="guide-description">Communiquez directement avec les recruteurs ou les candidats.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications en temps réel</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Conversations privées</span>
+                            </div>
+                        </div>
+                        <div class="guide-tip">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Le badge rouge indique le nombre de messages non lus</span>
+                        </div>
+                    </div>`,
+                    element: '[href="{{ path("messages_index") }}"]'
+                },
+                {
+                    title: 'Publier une Offre',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <p class="guide-description">Créez facilement une nouvelle offre d'emploi.</p>
+                        <div class="guide-features">
+                            <div class="feature-item">
+                                <i class="fas fa-edit"></i>
+                                <span>Éditeur intuitif</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Options personnalisables</span>
+                            </div>
+                        </div>
+                        <div class="guide-tip">
+                            <i class="fas fa-star"></i>
+                            <span>Ajoutez des détails précis pour attirer les meilleurs talents</span>
+                        </div>
+                    </div>`,
+                    element: '[href="{{ path("emploi_add") }}"]'
+                },
+                {
+                    title: 'Aide et Support',
+                    content: `<div class="guide-content">
+                        <div class="guide-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <p class="guide-description">Besoin d'aide ? Ce guide est toujours accessible.</p>
+                        <div class="guide-tip">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Cliquez sur ce bouton à tout moment pour revoir le guide</span>
+                        </div>
+                    </div>`,
+                    element: '.guide-launcher'
+                }
+            ];
+
+            // Styles du guide
+            const style = document.createElement('style');
+            style.textContent = `
+                .guide-popup {
+                    background: white;
+                    border-radius: 15px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                    padding: 25px;
+                    width: 400px;
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 1050;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                }
+
+                .guide-content {
+                    margin: 20px 0;
+                }
+
+                .guide-title {
+                    font-size: 1.5rem;
+                    color: #2c3e50;
+                    margin-bottom: 15px;
+                    text-align: center;
+                }
+
+                .guide-description {
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                    color: #34495e;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+
+                .guide-features {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                    gap: 15px;
+                    margin: 20px 0;
+                }
+
+                .feature-item {
+                    background: #f8f9fa;
+                    padding: 15px;
+                    border-radius: 10px;
+                    text-align: center;
+                    transition: all 0.3s ease;
+                }
+
+                .feature-item:hover {
+                    transform: translateY(-2px);
+                    background: #e9ecef;
+                }
+
+                .guide-tip {
+                    background: #fff3cd;
+                    border-left: 4px solid #ffc107;
+                    padding: 15px;
+                    margin-top: 15px;
+                    border-radius: 8px;
+                }
+
+                .guide-navigation {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 25px;
+                    padding-top: 20px;
+                    border-top: 1px solid #e9ecef;
+                }
+
+                .guide-button {
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    border: none;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .guide-button.primary {
+                    background: #3498db;
+                    color: white;
+                }
+
+                .guide-button.primary:hover {
+                    background: #2980b9;
+                }
+
+                .guide-button.secondary {
+                    background: #e9ecef;
+                    color: #2c3e50;
+                }
+
+                .guide-button.secondary:hover {
+                    background: #dee2e6;
+                }
+
+                .guide-progress {
+                    display: flex;
+                    justify-content: center;
+                    gap: 8px;
+                    margin-top: 20px;
+                }
+
+                .progress-dot {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background: #e9ecef;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+
+                .progress-dot:hover {
+                    transform: scale(1.2);
+                }
+
+                .progress-dot.active {
+                    background: #3498db;
+                    transform: scale(1.2);
+                }
+
+                .step-counter {
+                    font-size: 1rem;
+                    color: #6c757d;
+                    text-align: center;
+                    margin-bottom: 15px;
+                }
+
+                .guide-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.7);
+                    z-index: 1040;
+                    backdrop-filter: blur(3px);
+                }
+
+                .highlighted-element {
+                    position: relative;
+                    z-index: 1045;
+                    animation: highlight-pulse 2s infinite;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Création du popup
+            const popup = document.createElement('div');
+            popup.className = 'guide-popup';
+
+            // Création de l'overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'guide-overlay';
+
+            // Fonction pour afficher une étape
+            function showStep(index) {
+                const step = steps[index];
+                if (!step) return;
+
+                const element = document.querySelector(step.element);
+                if (!element) return;
+
+                // Clear previous highlights
+                document.querySelectorAll('.highlighted-element').forEach(el => {
+                    el.classList.remove('highlighted-element');
+                });
+
+                // Highlight current element
+                element.classList.add('highlighted-element');
+
+                // Update popup content
+                popup.innerHTML = `
+                    <div class="step-counter">${index + 1} / ${steps.length}</div>
+                    <h3 class="guide-title">${step.title}</h3>
+                    ${step.content}
+                    <div class="guide-navigation">
+                        ${index > 0 ? 
+                            `<button class="guide-button secondary prev">
+                                <i class="fas fa-arrow-left"></i> Précédent
+                            </button>` : 
+                            '<div></div>'}
+                        ${index < steps.length - 1 ? 
+                            `<button class="guide-button primary next">
+                                Suivant <i class="fas fa-arrow-right"></i>
+                            </button>` : 
+                            `<button class="guide-button primary close">
+                                Terminer <i class="fas fa-check"></i>
+                            </button>`}
+                    </div>
+                    <div class="guide-progress">
+                        ${steps.map((_, i) => 
+                            `<div class="progress-dot ${i === index ? 'active' : ''}" 
+                                  onclick="showStep(${i})" 
+                                  title="Étape ${i + 1}"></div>`
+                        ).join('')}
+                    </div>
+                `;
+
+                // Center the popup on screen
+                popup.style.top = '50%';
+                popup.style.left = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+
+                // Scroll the highlighted element into view
+                element.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center'
+                });
+            }
+
+            // Update click handlers
+            popup.addEventListener('click', (e) => {
+                const currentStep = steps.findIndex(step => 
+                    document.querySelector(step.element)?.classList.contains('highlighted-element')
+                );
+
+                if (e.target.closest('.prev')) {
+                    showStep(currentStep - 1);
+                } else if (e.target.closest('.next')) {
+                    showStep(currentStep + 1);
+                } else if (e.target.closest('.close')) {
+                    popup.remove();
+                    overlay.remove();
+                    document.querySelectorAll('.highlighted-element').forEach(el => {
+                        el.classList.remove('highlighted-element');
+                    });
+                }
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!popup.isConnected) return;
+
+                const currentStep = steps.findIndex(step => 
+                    document.querySelector(step.element)?.classList.contains('highlighted-element')
+                );
+
+                if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                    if (currentStep < steps.length - 1) {
+                        showStep(currentStep + 1);
+                    }
+                } else if (e.key === 'ArrowLeft') {
+                    if (currentStep > 0) {
+                        showStep(currentStep - 1);
+                    }
+                } else if (e.key === 'Escape') {
+                    popup.remove();
+                    overlay.remove();
+                    document.querySelectorAll('.highlighted-element').forEach(el => {
+                        el.classList.remove('highlighted-element');
+                    });
+                }
+            });
+
+            // Bouton pour lancer le guide
+            const guideButton = document.createElement('button');
+            guideButton.innerHTML = `
+                <i class="fas fa-question-circle fa-lg"></i>
+            `;
+            guideButton.className = 'btn btn-primary guide-launcher position-fixed';
+            guideButton.style.cssText = `
+                bottom: 90px;
+                left: 20px;
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                transition: all 0.3s ease;
+            `;
+
+            // Update hover animations to match
+            guideButton.onmouseover = () => {
+                guideButton.style.transform = 'scale(1.1)';
+            };
+            guideButton.onmouseout = () => {
+                guideButton.style.transform = 'scale(1)';
+            };
+
+            // Démarrer le guide
+            guideButton.onclick = () => {
+                document.body.appendChild(overlay);
+                document.body.appendChild(popup);
+                showStep(0);
+            };
+
+            document.body.appendChild(guideButton);
+        });
+
+        function toggleKeywords(button, emploiId) {
+            const container = document.getElementById(`keywords-${emploiId}`);
+            const icon = button.querySelector('i');
+            
+            if (container.style.display === 'none') {
+                // Si le contenu n'est pas encore chargé
+                if (!container.hasAttribute('data-loaded')) {
+                    // Afficher un indicateur de chargement
+                    container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+                    container.style.display = 'block';
+                    
+                    // Charger les mots-clés via l'API
+                    fetch(`/api/emploi/${emploiId}/keywords`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Créer la grille de mots-clés
+                            const keywordsHtml = data.keywords.map(keyword => `
+                                <div class="keyword-item">
+                                    <i class="fas fa-check-circle text-success me-1"></i>
+                                    ${keyword}
+                                </div>
+                            `).join('');
+                            
+                            container.innerHTML = `
+                                <div class="keywords-grid mt-2">
+                                    ${keywordsHtml}
+                                </div>
+                            `;
+                            container.setAttribute('data-loaded', 'true');
+                        })
+                        .catch(error => {
+                            container.innerHTML = `
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle"></i> 
+                                    Erreur lors du chargement des mots-clés
+                                </div>
+                            `;
+                        });
+                } else {
+                    container.style.display = 'block';
+                }
+                icon.classList.add('active');
+            } else {
+                container.style.display = 'none';
+                icon.classList.remove('active');
+            }
+            
+            // Faire pivoter l'icône
+            icon.style.transform = container.style.display === 'none' ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ne pas déclencher les raccourcis si l'utilisateur est en train de taper dans un champ
+            if (e.target.matches('input, textarea')) return;
+
+            switch(e.key.toLowerCase()) {
+                case 'k':
+                    // Créer une nouvelle offre
+                    window.location.href = '{{ path('emploi_add') }}';
+                    break;
+
+                case 'f':
+                    // Focus sur la barre de recherche
+                    e.preventDefault();
+                    document.getElementById('search').focus();
+                    break;
+
+                case 'arrowleft':
+                case 'arrowright':
+                    // Navigation entre les offres
+                    e.preventDefault();
+                    const cards = document.querySelectorAll('.card.h-100');
+                    const activeCard = document.activeElement.closest('.card.h-100');
+                    let index = Array.from(cards).indexOf(activeCard);
+                    
+                    if (index === -1) index = 0;
+                    else {
+                        index += e.key === 'ArrowLeft' ? -1 : 1;
+                        if (index < 0) index = cards.length - 1;
+                        if (index >= cards.length) index = 0;
+                    }
+                    
+                    cards[index].querySelector('.btn-outline-dark').focus();
+                    cards[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    break;
+            }
+
+            // Raccourcis avec Ctrl
+            if (e.ctrlKey) {
+                switch(e.key.toLowerCase()) {
+                    case 'enter':
+                        // Soumettre une candidature
+                        const activeOffer = document.activeElement.closest('.card.h-100');
+                        if (activeOffer) {
+                            const applyButton = activeOffer.querySelector('[data-action="apply"]');
+                            if (applyButton) applyButton.click();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // Ajouter une boîte de dialogue d'aide pour les raccourcis
+        const shortcutsHtml = `
+            <div class="shortcuts-dialog modal fade" id="shortcutsModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-keyboard me-2"></i>
+                                Raccourcis clavier
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Touche</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><kbd>K</kbd></td>
+                                            <td>Créer une nouvelle offre</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>F</kbd></td>
+                                            <td>Rechercher des offres</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>←</kbd> / <kbd>→</kbd></td>
+                                            <td>Naviguer entre les offres</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>Ctrl</kbd> + <kbd>Enter</kbd></td>
+                                            <td>Postuler à l'offre sélectionnée</td>
+                                        </tr>
+                                        <tr>
+                                            <td><kbd>?</kbd></td>
+                                            <td>Afficher cette aide</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary position-fixed shortcuts-help" 
+                    style="bottom: 160px; left: 20px; border-radius: 50%; width: 60px; height: 60px;"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#shortcutsModal">
+                <i class="fas fa-keyboard"></i>
+            </button>
+        `;
+
+        // Ajouter la boîte de dialogue au document
+        document.body.insertAdjacentHTML('beforeend', shortcutsHtml);
+
+        // Afficher l'aide des raccourcis avec la touche "?"
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '?' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                new bootstrap.Modal(document.getElementById('shortcutsModal')).show();
+            }
+        });
+
+        // Fonction pour mettre à jour les statistiques
+        function updateJobStats(emploiId) {
+            const statsContainer = document.querySelector(`#stats-${emploiId}`);
+            if (!statsContainer) return;
+
+            fetch(`/api/emploi/${emploiId}/stats`)
+                .then(response => response.json())
+                .then(stats => {
+                    let html = '<div class="job-stats">';
+                    
+                    if (stats.recent > 0) {
+                        html += `
+                            <div class="stat-item recent">
+                                <i class="fas fa-rocket text-success"></i>
+                                <strong>${stats.recent}</strong> ${stats.recent === 1 ? 'personne a postulé' : 'personnes ont postulé'} 
+                                ces 2 dernières heures !
+                            </div>
+                        `;
+                    }
+
+                    if (stats.daily > 0) {
+                        html += `
+                            <div class="stat-item daily">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                <strong>${stats.daily}</strong> candidature${stats.daily > 1 ? 's' : ''} aujourd'hui
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                        <div class="stat-item total">
+                            <i class="fas fa-users text-secondary"></i>
+                            Total : <strong>${stats.total}</strong> candidature${stats.total > 1 ? 's' : ''}
+                        </div>
+                    `;
+
+                    if (stats.total > 0) {
+                        html += `
+                            <div class="stat-update text-end mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-sync-alt"></i> 
+                                    Dernière mise à jour : ${new Date(stats.lastUpdate).toLocaleTimeString()}
+                                </small>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="text-center text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Aucune candidature pour le moment
+                            </div>
+                        `;
+                    }
+
+                    html += '</div>';
+                    statsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des stats:', error);
+                    statsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> 
+                            Erreur lors du chargement des statistiques
+                        </div>
+                    `;
+                });
+        }
+
+        // Mettre à jour les stats toutes les 2 minutes
+        document.querySelectorAll('[id^="stats-"]').forEach(container => {
+            const emploiId = container.id.split('-')[1];
+            updateJobStats(emploiId);
+            setInterval(() => updateJobStats(emploiId), 120000);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base2.html.twig' %}
+
+{% block body %}
+<div class="card-body">
+    <div>
+        <h4 class="card-title"></h4>
+        <br><br><br>
+        <h1>{{ titre }} un Utilisateur</h1>
+        <p class="card-description"></p>
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        <!-- Nom -->
+        <div class="form-group">
+            {{ form_label(form.nom, 'Nom') }}
+            {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.nom) }}</small>
+        </div>
+
+        <!-- Prénom -->
+        <div class="form-group">
+            {{ form_label(form.prenom, 'Prénom') }}
+            {{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.prenom) }}</small>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            {{ form_label(form.email, 'Email') }}
+            {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.email) }}</small>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="form-group">
+            {{ form_label(form.plainPassword, 'Mot de passe') }}
+            {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control p_input'}}) }}
+            <small class="text-danger">{{ form_errors(form.plainPassword) }}</small>
+        </div>
+
+        <!-- Numéro de téléphone -->
+        <div class="form-group">
+            {{ form_label(form.numtlf, 'Numéro de téléphone') }}
+            {{ form_widget(form.numtlf, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.numtlf) }}</small>
+        </div>
+
+        <!-- Âge -->
+        <div class="form-group">
+            {{ form_label(form.age, 'Âge') }}
+            {{ form_widget(form.age, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.age) }}</small>
+        </div>
+
+        <!-- Avatar URL -->
+        <div class="form-group">
+            {{ form_label(form.avatarUrl, 'URL de l\'avatar') }}
+            {{ form_widget(form.avatarUrl, {'attr': {'class': 'form-control', 'placeholder': 'URL de l\'avatar'}}) }}
+            <small class="text-danger">{{ form_errors(form.avatarUrl) }}</small>
+        </div>
+
+        <!-- Rôles -->
+        <div class="form-group">
+            {{ form_label(form.roles, 'Rôles') }}
+            {{ form_widget(form.roles, {'attr': {'class': 'form-control'}}) }}
+            <small class="text-danger">{{ form_errors(form.roles) }}</small>
+        </div>
+
+        <button type="submit" class="btn btn-inverse-primary btn-fw">{{ titre }}</button>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+
+<style>
+    .card-body {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #2196F3;
+        box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+        color: white;
+    }
+
+    label {
+        color: white;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .btn-inverse-primary {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-inverse-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    h1 {
+        color: white;
+        margin-bottom: 2rem;
+    }
+
+    .text-danger {
+        color: #ff4444;
+    }
+</style>
+{% endblock %}

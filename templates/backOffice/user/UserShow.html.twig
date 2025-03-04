@@ -1,0 +1,603 @@
+{% extends 'base2.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js">
+<style>
+    /* Dashboard Container */
+    .dashboard-container {
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(26,30,44,0.95), rgba(31,38,135,0.85));
+        min-height: 100vh;
+    }
+
+    /* Header Section */
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-info {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .datetime-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #fff;
+        font-size: 1.1rem;
+    }
+
+    .datetime-display i {
+        color: #2196F3;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(33, 150, 243, 0.1);
+        padding: 0.75rem 1.5rem;
+        border-radius: 30px;
+    }
+
+    .user-info i {
+        color: #2196F3;
+        font-size: 1.2rem;
+    }
+
+    .user-name {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-title {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-value {
+        color: #fff;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    /* Search Bar */
+    .search-bar {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #2196F3;
+        box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Users Table */
+    .users-table {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th {
+        background: rgba(0, 0, 0, 0.2);
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        padding: 1rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        color: #fff;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        vertical-align: middle;
+    }
+
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-2px);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: none;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+    }
+
+    /* Avatar */
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #2196F3;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge-admin {
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        color: white;
+    }
+
+    .badge-user {
+        background: linear-gradient(135deg, #4CAF50, #388E3C);
+        color: white;
+    }
+
+    /* Chart Section */
+    .chart-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+
+    .chart-title {
+        color: #fff;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .chart-container {
+        height: 400px;
+        position: relative;
+        margin: auto;
+        max-width: 800px;
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        align-items: center;
+    }
+
+    .pagination-button {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .pagination-button:hover:not(:disabled) {
+        background: rgba(33, 150, 243, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .pagination-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .page-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+
+    }
+    /* Add User Button Section */
+.add-user-section {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-add-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.btn-add-user:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-add-user i {
+    font-size: 1.2rem;
+}
+
+/* Animation pour le bouton */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 25px rgba(76, 175, 80, 0.5);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+}
+
+.btn-add-user:active {
+    transform: translateY(0);
+    animation: pulse 0.3s ease-in-out;
+}
+
+/* Media Query pour la responsivité */
+@media (max-width: 768px) {
+    .add-user-section {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .btn-add-user {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-info">
+                <div class="datetime-display">
+                    <i class="mdi mdi-calendar-clock"></i>
+                    <span>{{ "now"|date("Y-m-d H:i:s") }}</span>
+                </div>
+                <div class="user-info">
+                    <i class="mdi mdi-account-circle"></i>
+                    <span class="user-name">{{ app.user.nom }}</span>
+                </div>
+                <!-- Add User Button -->
+<div class="add-user-section">
+    <a href="{{ path('ajouter_user') }}" class="btn-add-user">
+        <i class="mdi mdi-account-plus"></i>
+        <span>Ajouter un utilisateur</span>
+    </a>
+</div>
+            </div>
+        </div>
+
+        
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <i class="mdi mdi-magnify search-icon"></i>
+            <input type="text" 
+                   id="searchInput" 
+                   class="search-input" 
+                   placeholder="Rechercher un utilisateur...">
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table">
+            <table class="table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Nom & Prénom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Age</th>
+                        <th>Rôle</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            {% if user.avatarUrl %}
+                            <img src="{{ app.user.avatarUrl|replace({'.glb': '.png'}) }}" alt="Avatar" class="avatar-image">
+                        
+                            {% else %}
+                                <img src="{{ asset('uploads/images/default_avatar.png') }}" 
+                                     alt="Avatar" 
+                                     class="avatar">
+                            {% endif %}
+                        </td>
+                        <td>{{ user.nom }} {{ user.prenom }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.numtlf }}</td>
+                        <td>{{ user.age }}</td>
+                        <td>
+                            {% if 'ROLE_ADMIN' in user.roles %}
+                                <span class="badge badge-admin">Admin</span>
+                            {% else %}
+                                <span class="badge badge-user">Utilisateur</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ path('edit_user', {'id': user.id}) }}" 
+                                   class="btn-action btn-edit" 
+                                   title="Modifier">
+                                    <i class="mdi mdi-pencil"></i>
+                                </a>
+                                <button onclick="confirmDelete('{{ path('delete_user', {'id': user.id}) }}')" 
+                                        class="btn-action btn-delete" 
+                                        title="Supprimer">
+                                    <i class="mdi mdi-delete"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+       
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button id="prevPage" class="pagination-button">
+                <i class="mdi mdi-chevron-left"></i> Précédent
+            </button>
+            <span class="page-info">
+                Page <span id="currentPage">1</span> sur <span id="totalPages">1</span>
+            </span>
+            <button id="nextPage" class="pagination-button">
+                Suivant <i class="mdi mdi-chevron-right"></i>
+            </button>
+        </div>
+        
+
+         <!-- Chart Section -->
+        <div class="chart-section">
+            <h3 class="chart-title">Distribution des Utilisateurs</h3>
+            <div class="chart-container">
+                <canvas id="userStatsChart"></canvas>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart initialization
+            const ctx = document.getElementById('userStatsChart').getContext('2d');
+            const adminCount = {{ users|filter(user => 'ROLE_ADMIN' in user.roles)|length }};
+            const standardUsers = {{ users|filter(user => 'ROLE_ADMIN' not in user.roles)|length }};
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Administrateurs', 'Utilisateurs Standard'],
+                    datasets: [{
+                        data: [adminCount, standardUsers],
+                        backgroundColor: [
+                            'rgba(33, 150, 243, 0.8)',
+                            'rgba(76, 175, 80, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(33, 150, 243, 1)',
+                            'rgba(76, 175, 80, 1)'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 14
+                                },
+                                padding: 20
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // Pagination
+            const tableRows = document.querySelectorAll('#usersTable tbody tr');
+            const itemsPerPage = 5;
+            let currentPage = 1;
+
+            function showPage(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                
+                tableRows.forEach((row, index) => {
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+                
+                document.getElementById('currentPage').textContent = page;
+                updatePaginationButtons(page);
+            }
+
+            function updatePaginationButtons(page) {
+                const totalPages = Math.ceil(tableRows.length / itemsPerPage);
+                document.getElementById('totalPages').textContent = totalPages;
+                
+                const prevButton = document.getElementById('prevPage');
+                const nextButton = document.getElementById('nextPage');
+                
+                prevButton.disabled = page <= 1;
+                nextButton.disabled = page >= totalPages;
+            }
+
+            // Event listeners for pagination
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const totalPages = Math.ceil(tableRows.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase();
+                let visibleRows = 0;
+
+                tableRows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const isVisible = text.includes(searchTerm);
+                    row.style.display = isVisible ? '' : 'none';
+                    if (isVisible) visibleRows++;
+                });
+
+                currentPage = 1;
+                showPage(1);
+            }
+
+            searchInput.addEventListener('input', filterTable);
+
+            // Initialize pagination
+            showPage(1);
+        });
+
+        // Delete confirmation
+        function confirmDelete(deleteUrl) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+                window.location.href = deleteUrl;
+            }
+        }
+    </script>
+{% endblock %}

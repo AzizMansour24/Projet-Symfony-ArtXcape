@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Candidatures{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Liste des Candidatures</h1>
+
+    {% if candidatures is empty %}
+        <p class="text-center text-muted">Aucune candidature trouvée.</p>
+    {% else %}
+        <div class="table-responsive"> 
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Candidat</th>
+                        <th>Compétences</th>
+                        <th>Lettre de Motivation</th>
+                        <th>CV</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidature in candidatures %}
+                        <tr>
+                            <td>{{ candidature.candidat.nom }}</td>
+                            <td>{{ candidature.competences|slice(0, 50) ~ '...' }}</td>
+                            <td>{{ candidature.lettreMotivation|slice(0, 50) ~ '...' }}</td>
+                            <td>
+                                {% if candidature.cv %}
+                                    <a href="{{ asset('uploads/cv/' ~ candidature.cv) }}" target="_blank" class="btn btn-sm btn-info">
+                                        <i class="fas fa-download"></i> Télécharger
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Aucun CV</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ path('front_candidature_show', {'id': candidature.id}) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                <form method="POST" action="{{ path('front_candidature_delete', {'id': candidature.id}) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette candidature ?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash-alt"></i> Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

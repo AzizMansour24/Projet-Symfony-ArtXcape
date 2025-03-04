@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <div class="mx-auto" style="max-width: 800px;">
+        <h1 class="mb-4">Edit Post</h1>
+        {{ form_start(postForm, {'attr': {'enctype': 'multipart/form-data', 'class': 'needs-validation'}}) }}
+            <div class="mb-4">
+                {{ form_label(postForm.title, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                {{ form_widget(postForm.title, {'attr': {'class': 'form-control form-control-lg rounded-3'}}) }}
+                <div class="invalid-feedback">
+                    {{ form_errors(postForm.title) }}
+                </div>
+            </div>
+            <div class="mb-4">
+                {{ form_label(postForm.content, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                {{ form_widget(postForm.content, {'attr': {'class': 'form-control rounded-3', 'rows': 4, 'placeholder': 'Share your thoughts...'}}) }}
+                <div class="invalid-feedback">
+                    {{ form_errors(postForm.content) }}
+                </div>
+            </div>
+            <div class="mb-4">
+                <div class="file-upload-wrapper">
+                    {{ form_label(postForm.imageFile, null, {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                    {{ form_widget(postForm.imageFile, {'attr': {'class': 'form-control form-control-lg'}}) }}
+                    <div class="invalid-feedback">
+                        {{ form_errors(postForm.imageFile) }}
+                    </div>
+                </div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-lg btn-gradient-primary fw-bold">Update Post</button>
+            </div>
+        {{ form_end(postForm) }}
+        <div class="mt-3">
+            <a href="{{ path('forum_index') }}" class="btn btn-link">Back to Forum</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

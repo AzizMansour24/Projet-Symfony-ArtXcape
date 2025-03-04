@@ -1,0 +1,61 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    images_directory: '%kernel.project_dir%/public/uploads/images'
+    app.gemini_api_key: '%env(GEMINI_API_KEY)%'
+    here_maps_api_key: '%env(HERE_MAPS_API_KEY)%'
+    cv_directory: '%kernel.project_dir%/public/uploads/cv'
+    models_directory: '%kernel.project_dir%/public/uploads/models'
+    transcriptions_directory: '%kernel.project_dir%/public/uploads/transcriptions'
+    app.openai_api_key: '%env(OPENAI_API_KEY)%'
+    app.assemblyai_api_key: '%env(ASSEMBLYAI_API_KEY)%'
+
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Service\GeminiChatbot:
+        autowire: true
+        arguments:
+            $apiKey: '%env(GEMINI_API_KEY)%'
+
+    Symfony\Component\Mailer\MailerInterface:
+        class: Symfony\Component\Mailer\Mailer
+
+    Symfony\Component\Mailer\Transport\TransportInterface:
+        factory: ['Symfony\Component\Mailer\Transport', 'fromDsn']
+        arguments:
+            $dsn: '%env(MAILER_DSN)%'
+
+    App\Command\InstallYtDlpCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Command\InstallFFmpegCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Command\InstallVoskCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Twig\AvatarExtension:
+        tags: ['twig.extension']

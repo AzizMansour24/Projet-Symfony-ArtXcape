@@ -1,0 +1,1168 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <!--==============================
+    Breadcumb
+    ============================== -->
+    <div class="breadcumb-wrapper text-center" data-bg-src="/assets/frontOffice/img/bg/breadcrumb-bg.png">
+        <div class="container">
+            <div class="breadcumb-content">
+                <h1 class="breadcumb-title">Ma Galerie</h1>
+            </div>
+            <ul class="breadcumb-menu">
+                <li><a href="{{ path('app_gallerie') }}">Galeries</a></li>
+                <li class="active">Mon Espace</li>
+            </ul>                
+        </div> 
+    </div>
+
+    <!--==============================
+    Galerie Section
+    ==============================-->
+    <div class="space-top space-extra-bottom">
+        <div class="container">
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+
+            {% if galerie is null %}
+                {# Si l'utilisateur n'a pas de galerie #}
+                <div class="text-center">
+                    <div class="no-gallery-box bg-white">
+                        <img src="/assets/frontOffice/img/normal/empty-gallery.png" alt="Empty Gallery" class="mb-4" style="max-width: 200px;">
+                        <h3 class="h4 mb-4">Vous n'avez pas encore de galerie</h3>
+                        <p class="mb-4">Créez votre propre galerie pour commencer à partager vos œuvres d'art.</p>
+                        <a href="#" class="btn" data-bs-toggle="modal" data-bs-target="#createGalleryModal">Créer ma galerie</a>
+                    </div>
+                </div>
+
+                <!-- Modal Création Galerie -->
+                <div class="modal fade" id="createGalleryModal" tabindex="-1" aria-labelledby="createGalleryModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="createGalleryModalLabel">Créer ma galerie</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {{ form_start(form, {'attr': {'class': 'gallery-form', 'id': 'galleryForm'}}) }}
+                                    <div class="form-group mb-4">
+                                        {{ form_label(form.nom, 'Nom de la galerie', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.nom, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.nom.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Entrez le nom de votre galerie'
+                                            }
+                                        }) }}
+                                        {% if not form.nom.vars.valid %}
+                                            <div class="invalid-feedback">
+                                                {{ form_errors(form.nom) }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-group mb-4">
+                                        {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                        {{ form_widget(form.description, {
+                                            'attr': {
+                                                'class': 'form-control' ~ (form.description.vars.valid ? '' : ' is-invalid'),
+                                                'placeholder': 'Décrivez votre galerie',
+                                                'rows': '4'
+                                            }
+                                        }) }}
+                                        {% if not form.description.vars.valid %}
+                                            <div class="invalid-feedback">
+                                                {{ form_errors(form.description) }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn">Créer</button>
+                                    </div>
+                                {{ form_end(form) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {# Si l'utilisateur a une galerie #}
+                <div class="gallery-info-box bg-white text-center mb-50">
+                    <h2 class="h3 mb-4">{{ galerie.nom }}</h2>
+                    <p class="gallery-description mb-4">{{ galerie.description }}</p>
+                    <div class="gallery-actions">
+                        <button class="btn-action btn-edit" data-bs-toggle="modal" data-bs-target="#editGalleryModal">
+                            <i class="fas fa-edit"></i>
+                            <span>Modifier</span>
+                        </button>
+                        <a href="{{ path('delete_galerie_front', {'id': galerie.id}) }}" 
+                           class="btn-action btn-delete"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer votre galerie ?')">
+                            <i class="fas fa-trash"></i>
+                            <span>Supprimer</span>
+                        </a>
+                        <a href="{{ path('articles_galerie', {'id': galerie.id}) }}" 
+                           class="btn-action btn-view">
+                            <i class="fas fa-images"></i>
+                            <span>Voir mes articles</span>
+                        </a>
+                        <a href="{{ path('mes_ventes', {'id': galerie.id}) }}" 
+                           class="btn-action btn-sales">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Voir mes ventes</span>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Section des articles likés - Toujours visible, en dehors des conditions #}
+            <div class="liked-articles-section mt-5">
+                <h3 class="text-center mb-4">Articles que vous aimez</h3>
+                <div class="row g-4">
+                    {% set hasLikedArticles = false %}
+                    {% for artLike in likedArticles %}
+                        {% set article = artLike.article %}
+                        {% set hasLikedArticles = true %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="liked-article-card">
+                                <div class="article-image">
+                                    <img src="{{ asset('uploads/images/' ~ article.contenu) }}" 
+                                         alt="{{ article.titre }}"
+                                         class="img-fluid">
+                                    <div class="article-overlay">
+                                        <span class="price-tag">{{ article.prix }} Dt</span>
+                                        {% if article.nbrarticle == 0 %}
+                                            <span class="stock-status">Rupture de stock</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="article-info">
+                                    <h4>{{ article.titre }}</h4>
+                                    <p class="artist">Par {{ article.galerie.user.nom }} {{ article.galerie.user.prenom }}</p>
+                                    <div class="article-meta">
+                                        <span class="category"><i class="fas fa-tag"></i> {{ article.categorie }}</span>
+                                        <span class="likes"><i class="fas fa-heart"></i> {{ article.nbrlikes }}</span>
+                                    </div>
+                                    <div class="article-actions">
+                                        <a href="#QuickView-{{ article.id }}" class="btn-view-details popup-content">
+                                            <i class="fas fa-eye"></i> Voir les détails
+                                        </a>
+                                        <a href="#" 
+                                           class="btn-dislike"
+                                           onclick="unlikeArticle({{ article.id }}, this)"
+                                           data-article-id="{{ article.id }}">
+                                            <i class="fas fa-heart-broken"></i> Retirer des favoris
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- PARTIE QUICK VIEW --> 
+                            <div id="QuickView-{{ article.id }}" class="white-popup mfp-hide" style="max-width: 1200px;">
+                                <div class="container bg-white quick-view-container">
+                                    <div class="row gx-50">
+                                        <div class="col-lg-6">
+                                            <div class="product-big-img">
+                                                <div class="img-wrapper">
+                                                    <img src="{{ asset('uploads/images/' ~ article.contenu) }}" 
+                                                         alt="Product Image"
+                                                         class="product-image">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 align-self-center">
+                                            <div class="product-about">
+                                                <div class="category-tag mb-4">{{ article.categorie }}</div>
+                                                <h2 class="product-title">{{ article.titre }}</h2>
+                                                <p class="price">{{ article.prix }} <span class="currency">Dt</span></p>
+                                                <div class="product-description">
+                                                    <p>{{ article.description }}</p>
+                                                </div>
+
+                                                <div class="info-list">
+                                                    <div class="info-item">
+                                                        <i class="far fa-calendar-alt"></i>
+                                                        <span>Publié le {{ article.datePub|date('d M Y') }}</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <i class="far fa-heart"></i>
+                                                        <span>{{ article.nbrlikes }} likes</span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <i class="far fa-user"></i>
+                                                        <span>Artiste: <a href="{{ path('artiste_profile', {'id': article.galerie.user.id}) }}" 
+                                                                     class="artist-link">{{ article.galerie.user.nom }} {{ article.galerie.user.prenom }}</a></span>
+                                                    </div>
+                                                    <div class="info-item">
+                                                        <i class="fas fa-phone"></i>
+                                                        <span>Contact: {{ article.galerie.user.numtlf ?? 'Non renseigné' }}</span>
+                                                    </div>
+                                                </div>
+
+                                                {% if article.nbrarticle > 0 %}
+                                                    <div class="actions">
+                                                        <div class="quantity-control">
+                                                            <div class="quantity-nav">
+                                                                <button type="button" class="quantity-button quantity-down">
+                                                                    <span>-</span>
+                                                                </button>
+                                                                <input type="number" class="quantity-input" value="1" min="1" max="{{ article.nbrarticle }}" readonly>
+                                                                <button type="button" class="quantity-button quantity-up">
+                                                                    <span>+</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <a href="{{ path('article_payment', {'id': article.id}) }}?quantity=1" 
+                                                           class="btn btn-primary buy-now">
+                                                            Acheter maintenant
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button title="Close (Esc)" type="button" class="mfp-close">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if not hasLikedArticles %}
+                        <div class="col-12">
+                            <div class="no-likes-message text-center">
+                                <i class="far fa-heart mb-3"></i>
+                                <h4>Vous n'avez pas encore liké d'articles</h4>
+                                <p>Explorez notre galerie pour découvrir des œuvres qui vous plaisent</p>
+                                <a href="{{ path('app_gallerie') }}" class="btn btn-primary mt-3">
+                                    Explorer la galerie
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+                {% if editForm is not null %}
+                    <!-- Modal Modification Galerie -->
+                <div class="modal fade" id="editGalleryModal">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                <h5 class="modal-title">Modifier ma galerie</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                {{ form_start(editForm, {'attr': {'class': 'gallery-form'}}) }}
+                                        <div class="form-group mb-4">
+                                            {{ form_label(editForm.nom, 'Nom de la galerie', {'label_attr': {'class': 'form-label'}}) }}
+                                            {{ form_widget(editForm.nom, {
+                                                'attr': {
+                                                    'class': 'form-control' ~ (editForm.nom.vars.valid ? '' : ' is-invalid'),
+                                                    'placeholder': 'Entrez le nom de votre galerie'
+                                                }
+                                            }) }}
+                                            {% if not editForm.nom.vars.valid %}
+                                                <div class="invalid-feedback">
+                                                    {{ form_errors(editForm.nom) }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group mb-4">
+                                            {{ form_label(editForm.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                            {{ form_widget(editForm.description, {
+                                                'attr': {
+                                                    'class': 'form-control' ~ (editForm.description.vars.valid ? '' : ' is-invalid'),
+                                                    'placeholder': 'Décrivez votre galerie',
+                                                    'rows': '4'
+                                                }
+                                            }) }}
+                                            {% if not editForm.description.vars.valid %}
+                                                <div class="invalid-feedback">
+                                                    {{ form_errors(editForm.description) }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="text-end">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                        </div>
+                                    {{ form_end(editForm) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const createModal = new bootstrap.Modal(document.getElementById('createGalleryModal'));
+        const editModal = new bootstrap.Modal(document.getElementById('editGalleryModal'));
+        
+        {% if form is not null and not form.vars.valid and app.request.method == 'POST' %}
+            createModal.show();
+        {% endif %}
+        
+        {% if editForm is not null and not editForm.vars.valid and app.request.method == 'POST' %}
+            editModal.show();
+        {% endif %}
+    });
+
+    function unlikeArticle(articleId, button) {
+        if (confirm('Voulez-vous vraiment retirer cet article de vos favoris ?')) {
+            fetch(`/article/${articleId}/like`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 'SUCCESS') {
+                    // Supprimer la carte de l'article
+                    button.closest('.col-lg-4').remove();
+                    
+                    // Vérifier s'il reste des articles likés
+                    const remainingCards = document.querySelectorAll('.liked-article-card');
+                    if (remainingCards.length === 0) {
+                        location.reload(); // Recharger pour afficher le message "aucun like"
+                    }
+                }
+            });
+        }
+        return false;
+    }
+
+    // Initialisation de Magnific Popup
+    $(document).ready(function() {
+        $('.popup-content').magnificPopup({
+            type: 'inline',
+            preloader: false,
+            mainClass: 'mfp-fade',
+            callbacks: {
+                open: function() {
+                    // Réinitialiser la quantité à 1 à chaque ouverture
+                    $(this.content).find('.quantity-input').val(1);
+                }
+            }
+        });
+    });
+
+    // Gestionnaire de quantité
+    document.querySelectorAll('.quantity-control').forEach(function(control) {
+        const input = control.querySelector('.quantity-input');
+        const upButton = control.querySelector('.quantity-up');
+        const downButton = control.querySelector('.quantity-down');
+        const max = parseInt(input.getAttribute('max'));
+        const buyButton = control.closest('.actions').querySelector('.btn.btn-primary');
+
+        function updateBuyButtonHref() {
+            const currentHref = buyButton.getAttribute('href');
+            const baseUrl = currentHref.split('?')[0];
+            buyButton.href = `${baseUrl}?quantity=${input.value}`;
+        }
+
+        upButton.addEventListener('click', function() {
+            const currentValue = parseInt(input.value);
+            if (currentValue < max) {
+                input.value = currentValue + 1;
+                updateBuyButtonHref();
+            }
+        });
+
+        downButton.addEventListener('click', function() {
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                updateBuyButtonHref();
+            }
+        });
+
+        // Initialiser le lien avec la quantité par défaut
+        input.value = "1";
+        updateBuyButtonHref();
+    });
+    </script>
+
+    <style>
+    /* Variables CSS pour une meilleure maintenabilité */
+    :root {
+        --primary-color: #4a90e2;
+        --secondary-color: #357abd;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+        --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
+        --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+        --shadow-lg: 0 8px 30px rgba(0,0,0,0.15);
+        --border-radius: 15px;
+        --transition: all 0.3s ease;
+    }
+
+    /* Style général des conteneurs */
+    .gallery-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    /* Style pour la boîte vide */
+    .no-gallery-box {
+        background: white;
+        padding: 60px 40px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: var(--transition);
+    }
+
+    .no-gallery-box:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .no-gallery-box img {
+        max-width: 200px;
+        margin-bottom: 30px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* Style pour la galerie existante */
+    .gallery-info-box {
+        background: white;
+        padding: 40px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gallery-info-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    .gallery-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .gallery-description {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    /* Style commun pour les boutons d'action */
+    .gallery-actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-action::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .btn-action:hover::before {
+        transform: translateX(0);
+    }
+
+    .btn-action i {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+    }
+
+    .btn-action:hover i {
+        transform: translateY(-2px);
+    }
+
+    /* Style spécifique pour chaque bouton */
+    .btn-edit {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+
+    .btn-sales {
+        background: linear-gradient(45deg, #ff8f00, #ff6f00);
+        color: white;
+    }
+    
+    .btn-sales:hover {
+        background: linear-gradient(45deg, #ff6f00, #ff8f00);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 143, 0, 0.3);
+        color: white;
+    }
+
+    /* Effets hover */
+    .btn-action:hover {
+        transform: translateY(-3px);
+    }
+
+    .btn-edit:hover {
+        box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+    }
+
+    .btn-delete:hover {
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-view:hover {
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+    }
+
+    /* Animation au clic */
+    .btn-action:active {
+        transform: translateY(-1px);
+    }
+
+    /* Animation d'entrée */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .gallery-actions {
+        animation: slideIn 0.5s ease-out forwards;
+    }
+
+    /* Style des alertes */
+    .alert {
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        position: relative;
+        animation: slideDown 0.4s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .alert-success {
+        background: linear-gradient(to right, #d4edda, #c3e6cb);
+        border-left: 5px solid var(--success-color);
+        color: #155724;
+    }
+
+    .alert-danger {
+        background: linear-gradient(to right, #f8d7da, #f5c6cb);
+        border-left: 5px solid var(--danger-color);
+        color: #721c24;
+    }
+
+    /* Style des modals */
+    .modal-content {
+        border-radius: var(--border-radius);
+        border: none;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-top-left-radius: var(--border-radius);
+        border-top-right-radius: var(--border-radius);
+        padding: 20px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        transition: var(--transition);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(74,144,226,0.2);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .gallery-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-action {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .liked-articles-section {
+        padding: 40px 0;
+    }
+    
+    .liked-article-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .liked-article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .article-image {
+        position: relative;
+        padding-top: 75%;
+        overflow: hidden;
+    }
+    
+    .article-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .liked-article-card:hover .article-image img {
+        transform: scale(1.05);
+    }
+    
+    .article-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .price-tag {
+        background: rgba(74, 144, 226, 0.9);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .stock-status {
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+    
+    .article-info {
+        padding: 20px;
+    }
+    
+    .article-info h4 {
+        margin: 0 0 10px;
+        font-size: 1.1rem;
+        color: #333;
+    }
+    
+    .artist {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+    
+    .article-meta {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .article-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #666;
+    }
+    
+    .article-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .btn-view-details {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        background: linear-gradient(45deg, #4a90e2, #357abd);
+        color: white;
+        border-radius: 25px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-details:hover {
+        background: linear-gradient(45deg, #357abd, #4a90e2);
+        transform: translateY(-2px);
+    }
+    
+    .no-likes-message {
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .no-likes-message i {
+        font-size: 3rem;
+        color: #dc3545;
+        display: block;
+    }
+    
+    .no-likes-message h4 {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .no-likes-message p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .btn-dislike {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        color: white;
+        border-radius: 25px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-dislike:hover {
+        background: linear-gradient(45deg, #c82333, #dc3545);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-dislike i {
+        font-size: 1rem;
+    }
+    
+    /* Ajuster la largeur des boutons pour qu'ils soient égaux */
+    .btn-view-details,
+    .btn-dislike {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    @media (max-width: 576px) {
+        .article-actions {
+            flex-direction: column;
+        }
+    }
+
+    /* Style du modal QuickView */
+    .white-popup {
+        position: relative;
+        background: #FFF;
+        padding: 40px;
+        width: auto;
+        max-width: 1000px;
+        margin: 20px auto;
+        border-radius: 15px;
+    }
+
+    .quick-view-container {
+        padding: 0;
+    }
+
+    .product-big-img {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .product-image {
+        width: 100%;
+        height: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .img-wrapper:hover .product-image {
+        transform: scale(1.05);
+    }
+
+    .product-about {
+        padding: 20px 0;
+    }
+
+    .product-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #1a1a1a;
+    }
+
+    .price {
+        font-size: 28px;
+        font-weight: 700;
+        color: #4a90e2;
+        margin-bottom: 20px;
+    }
+
+    .currency {
+        font-size: 20px;
+        font-weight: 500;
+        color: #666;
+    }
+
+    .product-description {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #666;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    /* Style pour les contrôles de quantité */
+    .quantity-control {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 15px;
+    }
+
+    .quantity-nav {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .quantity-button {
+        background: none;
+        border: none;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 600;
+        color: #666;
+    }
+
+    .quantity-button:hover {
+        background: #f5f5f5;
+        color: #ff8f00;
+    }
+
+    .quantity-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        font-weight: 600;
+        background: transparent;
+        font-size: 16px;
+        color: #333;
+        padding: 0;
+        margin: 0 5px;
+    }
+
+    .quantity-button span {
+        display: block;
+        line-height: 1;
+    }
+
+    /* Animation du modal */
+    .mfp-fade.mfp-bg {
+        opacity: 0;
+        transition: all 0.3s ease-out;
+    }
+
+    .mfp-fade.mfp-bg.mfp-ready {
+        opacity: 0.8;
+    }
+
+    .mfp-fade.mfp-wrap .mfp-content {
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease-out;
+    }
+
+    .mfp-fade.mfp-wrap.mfp-ready .mfp-content {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Style des actions dans le modal */
+    .actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .actions .btn-primary {
+        flex: 1;
+        padding: 12px 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: linear-gradient(45deg, #4a90e2, #357abd);
+        border: none;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+
+    .actions .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        background: linear-gradient(45deg, #357abd, #4a90e2);
+    }
+
+    /* Style du QuickView */
+    .mfp-close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 40px;
+        height: 40px;
+        background: white;
+        border-radius: 50%;
+        border: none;
+        font-size: 28px;
+        line-height: 40px;
+        padding: 0;
+        color: #666;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 1;
+    }
+
+    .mfp-close:hover {
+        background: #f8f9fa;
+        color: #333;
+        transform: rotate(90deg);
+        opacity: 1;
+    }
+
+    .buy-now {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: white;
+        background: linear-gradient(45deg, #4a90e2, #357abd);
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .buy-now:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        background: linear-gradient(45deg, #357abd, #4a90e2);
+        color: white;
+    }
+
+    .category-tag {
+        display: inline-block;
+        padding: 8px 20px;
+        background: linear-gradient(45deg, #4a90e2, #357abd);
+        color: white;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .info-list {
+        margin: 25px 0;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        color: #666;
+    }
+
+    .info-item i {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 50%;
+        color: #4a90e2;
+    }
+
+    /* Style du modal de modification */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, #ff8f00, #ff6f00);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        border: none;
+    }
+
+    .modal-header .btn-close {
+        background-color: white;
+        opacity: 1;
+    }
+
+    .modal-body {
+        padding: 25px;
+    }
+
+    .form-label {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #ff8f00;
+        box-shadow: 0 0 0 0.2rem rgba(255, 143, 0, 0.25);
+    }
+
+    .modal .btn {
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .modal .btn-secondary {
+        background: #e0e0e0;
+        border: none;
+        color: #666;
+    }
+
+    .modal .btn-secondary:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+
+    .modal .btn-primary {
+        background: linear-gradient(45deg, #ff8f00, #ff6f00);
+        border: none;
+    }
+
+    .modal .btn-primary:hover {
+        background: linear-gradient(45deg, #ff6f00, #ff8f00);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 143, 0, 0.3);
+    }
+    </style>
+{% endblock %}

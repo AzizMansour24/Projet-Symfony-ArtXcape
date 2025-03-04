@@ -1,0 +1,1290 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-lg-5 py-4">
+    <div class="mx-auto" style="max-width: 1200px;">
+        {# Page Header #}
+        <div class="d-flex align-items-center mb-5">
+            <h1 class="display-4 fw-bold gradient-text mb-0">Community Forum</h1>
+            <div class="ms-3">
+                <i class="fas fa-comments fa-2x text-primary"></i>
+            </div>
+        </div>
+
+        {# Flash Messages - Position Fixed #}
+        <div class="flash-messages position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} alert-dismissible fade show shadow-sm" role="alert">
+                        <i class="fas fa-{{ label == 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        {# New Post Card #}
+        <div class="create-post-card mb-5">
+            <div class="create-post-header">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-avatar-large">
+                        {{ app.user ? app.user.nom|first|upper ~ app.user.prenom|first|upper : 'G' }}
+                    </div>
+                    <div class="create-post-prompt">
+                        <h5 class="mb-1">Share your thoughts</h5>
+                        <p class="text-muted mb-0">What's on your mind today?</p>
+                    </div>
+                </div>
+            </div>
+
+            {{ form_start(postForm, {'attr': {'class': 'create-post-form'}}) }}
+                <div class="form-floating mb-4">
+                    {{ form_widget(postForm.title, {
+                        'attr': {
+                            'class': 'form-control custom-input' ~ (postForm.title.vars.errors|length > 0 ? ' is-invalid' : ''),
+                            'placeholder': 'Give your post a title',
+                        }
+                    }) }}
+                    {{ form_label(postForm.title, 'Title') }}
+                    {{ form_errors(postForm.title) }}
+                </div>
+
+                <div class="form-floating mb-4">
+                    {{ form_widget(postForm.content, {
+                        'attr': {
+                            'class': 'form-control custom-textarea' ~ (postForm.content.vars.errors|length > 0 ? ' is-invalid' : ''),
+                            'placeholder': 'Share your thoughts...',
+                            'style': 'height: 120px'
+                        }
+                    }) }}
+                    {{ form_label(postForm.content, 'Content') }}
+                    {{ form_errors(postForm.content) }}
+                </div>
+
+                <div class="upload-section mb-4">
+                    <label for="{{ postForm.imageFile.vars.id }}" class="upload-trigger">
+                        <i class="fas fa-image"></i>
+                        <span>Add a photo</span>
+                    </label>
+                    {{ form_widget(postForm.imageFile, {
+                        'attr': {
+                            'class': 'hidden-upload' ~ (postForm.imageFile.vars.errors|length > 0 ? ' is-invalid' : ''),
+                            'accept': 'image/*'
+                        }
+                    }) }}
+                    {{ form_errors(postForm.imageFile) }}
+                </div>
+
+                <div class="form-actions">
+                    {{ form_widget(postForm.save, {
+                        'attr': {
+                            'class': 'btn-publish'
+                        },
+                        'label': 'Share with Community'
+                    }) }}
+                </div>
+            {{ form_end(postForm) }}
+        </div>
+
+        {# Posts Section (unchanged) #}
+        <div class="posts-container">
+            {% for post in posts %}
+                <div class="card post-card border-0 shadow-sm mb-4 hover-scale" id="post-{{ post.id }}">
+                    <div class="card-header bg-light-gradient d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar me-3">
+                                <div class="avatar-initials bg-primary text-white">
+                                    {{ post.author.nom|first|upper }}{{ post.author.prenom|first|upper }}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="mb-0" id="post-title-{{ post.id }}">{{ post.title }}</h4>
+                                <small class="text-muted">
+                                    Posted by {{ post.author.nom ~ ' ' ~ post.author.prenom }} 
+                                    <span class="mx-2">•</span>
+                                    {{ post.createdAt|date('d M Y H:i') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% if app.user and app.user.id == post.author.id %}
+                        <div class="d-flex">
+                            <button class="btn btn-inline-edit me-2" data-post-id="{{ post.id }}">Modifier</button>
+                            <form action="{{ path('forum_delete', {'id': post.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                                <button class="btn btn-danger" type="submit">Supprimer</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        {% if post.image %}
+                            <div class="post-image mb-4" id="post-image-container-{{ post.id }}">
+                                <img id="post-image-{{ post.id }}" src="{{ asset('uploads/images/' ~ post.image) }}" 
+                                     class="img-fluid rounded-3 shadow-sm" 
+                                     alt="Post image"
+                                     style="max-height: 400px; object-fit: cover;">
+                            </div>
+                        {% endif %}
+                        <div class="post-content mb-4" id="post-content-{{ post.id }}">
+                            {{ post.content|nl2br }}
+                        </div>
+
+                        {# Post Actions #}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <button class="btn btn-like btn-sm me-3" data-post-id="{{ post.id }}">
+                                    <i class="fas fa-heart me-2"></i>
+                                    <span class="like-count">{{ post.likes|length }}</span>
+                                </button>
+                                
+                                <div class="reaction-container me-3">
+                                    <div class="reactions-display d-flex align-items-center">
+                                        {# Afficher toutes les réactions distinctes avec leur compte #}
+                                        {% set uniqueReactions = {} %}
+                                        {% for reaction in post.reactions %}
+                                            {% if reaction.emoji not in uniqueReactions|keys %}
+                                                {% set uniqueReactions = uniqueReactions|merge({(reaction.emoji): 1}) %}
+                                            {% else %}
+                                                {% set uniqueReactions = uniqueReactions|merge({
+                                                    (reaction.emoji): uniqueReactions[reaction.emoji] + 1
+                                                }) %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {# Afficher les réactions avec leur compte comme Facebook #}
+                                        <div class="reactions-summary me-2">
+                                            {% for emoji, count in uniqueReactions %}
+                                                <span class="reaction-count-item">{{ emoji }} {{ count }}</span>
+                                                {% if not loop.last %}•{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        {# Bouton pour ajouter une réaction #}
+                                        <button class="btn btn-reaction-main btn-sm" data-post-id="{{ post.id }}" id="reaction-btn-{{ post.id }}">
+                                            <span class="reaction-icon me-2">
+                                                {% set userReaction = null %}
+                                                {% for reaction in post.reactions %}
+                                                    {% if app.user and reaction.user.id == app.user.id %}
+                                                        {% set userReaction = reaction %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {% if userReaction %}
+                                                    {{ userReaction.emoji }}
+                                                {% else %}
+                                                    <i class="far fa-smile"></i>
+                                                {% endif %}
+                                            </span>
+                                        </button>
+                                    </div>
+                                    
+                                    {# Barre de réactions qui apparaît au survol #}
+                                    <div class="reaction-bar">
+                                        <button class="btn btn-reaction" data-post-id="{{ post.id }}" data-type="emoji" data-emoji="👍">👍</button>
+                                        <button class="btn btn-reaction" data-post-id="{{ post.id }}" data-type="emoji" data-emoji="😂">😂</button>
+                                        <button class="btn btn-reaction" data-post-id="{{ post.id }}" data-type="emoji" data-emoji="😮">😮</button>
+                                        <button class="btn btn-reaction" data-post-id="{{ post.id }}" data-type="emoji" data-emoji="😢">😢</button>
+                                        <button class="btn btn-reaction" data-post-id="{{ post.id }}" data-type="emoji" data-emoji="😡">😡</button>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-comment-toggle btn-sm" data-post-id="{{ post.id }}">
+                                    <i class="fas fa-comment-alt me-2"></i>
+                                    <span class="comment-count">{{ post.comments|length }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {# Inline Edit Form (only for the author) #}
+                        {% if app.user and app.user.id == post.author.id %}
+                        <div class="collapse mb-4" id="edit-form-{{ post.id }}">
+                            <div class="card card-body">
+                                <div class="mb-3">
+                                    <label for="edit-title-{{ post.id }}" class="form-label fw-bold">Title</label>
+                                    <input type="text" class="form-control" id="edit-title-{{ post.id }}" value="{{ post.title }}">
+                                    <div class="invalid-feedback" id="edit-title-error-{{ post.id }}"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-content-{{ post.id }}" class="form-label fw-bold">Content</label>
+                                    <textarea class="form-control" id="edit-content-{{ post.id }}" rows="4">{{ post.content }}</textarea>
+                                    <div class="invalid-feedback" id="edit-content-error-{{ post.id }}"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="edit-image-{{ post.id }}" class="form-label fw-bold">Upload New Image (optional)</label>
+                                    <input type="file" class="form-control" id="edit-image-{{ post.id }}">
+                                    <div class="invalid-feedback" id="edit-image-error-{{ post.id }}"></div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-secondary me-2 btn-cancel-edit" data-post-id="{{ post.id }}">Cancel</button>
+                                    <button class="btn btn-primary btn-save-edit" data-post-id="{{ post.id }}">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+
+                        {# Comments Section (Collapse) #}
+                        <div class="comments-container collapse" id="comments-{{ post.id }}">
+                            <div class="comments-header mb-3">
+                                <h5 class="comments-title">
+                                    <i class="far fa-comments me-2"></i>
+                                    Comments ({{ post.comments|length }})
+                                </h5>
+                            </div>
+
+                            <div class="comments-list">
+                                {% for comment in post.comments %}
+                                    <div class="comment-item border-bottom mb-3 pb-3">
+                                        <div class="comment-author">
+                                            <div class="comment-avatar">
+                                                {{ comment.author.nom|first|upper }}{{ comment.author.prenom|first|upper }}
+                                            </div>
+                                            <div class="comment-meta">
+                                                <div class="comment-author-name">
+                                                    {{ comment.author.nom ~ ' ' ~ comment.author.prenom }}
+                                                </div>
+                                                <div class="comment-time">
+                                                    <i class="far fa-clock me-1"></i>
+                                                    {{ comment.createdAt|date('d M Y H:i') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="comment-content">
+                                            {% if comment.gifUrl %}
+                                                <img src="{{ comment.gifUrl }}" alt="Comment GIF" class="comment-gif">
+                                            {% else %}
+                                                {{ comment.content }}
+                                            {% endif %}
+                                        </div>
+                                        {% if app.user and app.user.id == comment.author.id %}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="flex-grow-1">
+                                                <!-- Contenu du commentaire ici, si nécessaire -->
+                                            </div>
+                                            <form action="{{ path('forum_comment_delete', {'id': comment.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');" class="d-inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                                <button class="btn btn-delete btn-sm" type="submit" title="Supprimer le commentaire">
+                                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="empty-comments">
+                                        <div class="empty-comments-icon">
+                                            <i class="far fa-comment-dots"></i>
+                                        </div>
+                                        <h6>No comments yet</h6>
+                                        <p>Be the first to share your thoughts!</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="comment-form-container">
+                                <form method="post" action="{{ path('forum_comment', {'id': post.id}) }}" class="comment-form">
+                                    <div class="comment-input-group">
+                                        <div class="comment-avatar">
+                                            {{ app.user ? app.user.nom|first|upper ~ app.user.prenom|first|upper : 'G' }}
+                                        </div>
+                                        <div class="input-wrapper">
+                                            <textarea name="content" class="comment-input" 
+                                                      placeholder="Write your comment..." rows="1"></textarea>
+                                            <input type="hidden" name="gifUrl" id="gifUrl-{{ post.id }}" />
+                                            <div class="comment-actions">
+                                                <button type="button" class="btn-gif" onclick="openGifPicker({{ post.id }})">
+                                                    <i class="fas fa-images"></i>
+                                                </button>
+                                                <button type="submit" class="btn-send">
+                                                    <i class="fas fa-paper-plane"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="gif-preview-{{ post.id }}" class="gif-preview"></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted">No posts yet</h3>
+                    <p class="text-muted">Be the first to start a discussion!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary: #ff6b35;         /* Orange principal */
+        --secondary: #ff9f1c;       /* Orange secondaire */
+        --success: #00b574;
+        --danger: #ff3b3b;
+        --dark: #1a1f36;
+        --light: #f9fafb;
+        --card-shadow: 0 10px 30px rgba(255, 107, 53, 0.08);
+        --hover-shadow: 0 15px 35px rgba(255, 107, 53, 0.12);
+    }
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hover-scale {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-scale:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .avatar-initials {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+    }
+    .avatar-initials-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .btn-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-gradient-primary:hover {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+    }
+    .bg-light-gradient {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    .post-image img {
+        transition: transform 0.3s ease;
+    }
+    .post-image:hover img {
+        transform: scale(1.02);
+    }
+    .comment-item {
+        transition: transform 0.2s ease;
+    }
+    .comment-item:hover {
+        transform: translateX(5px);
+    }
+    .reaction-container {
+        position: relative;
+    }
+
+    .reaction-bar {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        background: white;
+        border: none;
+        border-radius: 30px;
+        padding: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 9999;
+        margin-bottom: 15px;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .reaction-container:hover .reaction-bar {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .btn-reaction {
+        width: 40px;
+        height: 40px;
+        padding: 5px;
+        font-size: 1.5rem;
+        background: none;
+        border: none;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn-reaction:hover {
+        transform: scale(1.2);
+        background-color: rgba(0,0,0,0.05);
+        z-index: 1;
+    }
+
+    .btn-reaction::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s, height 0.3s;
+    }
+
+    .btn-reaction:active::after {
+        width: 100%;
+        height: 100%;
+    }
+
+    .reaction-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    .reaction-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .btn-like, .btn-reaction-main, .btn-comment-toggle {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-like {
+        color: #666;
+    }
+
+    .btn-like:hover {
+        color: #dc3545;
+        background: #fff0f3;
+        border-color: #ffccd5;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(220, 53, 69, 0.1);
+    }
+
+    .btn-like.active {
+        color: #dc3545;
+        background: #fff0f3;
+        border-color: #ffccd5;
+    }
+
+    .btn-reaction-main {
+        color: #666;
+    }
+
+    .btn-reaction-main:hover {
+        color: #0d6efd;
+        background: #f0f7ff;
+        border-color: #cce5ff;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(13, 110, 253, 0.1);
+    }
+
+    .btn-reaction-main.active {
+        color: #0d6efd;
+        background: #f0f7ff;
+        border-color: #cce5ff;
+    }
+
+    .btn-comment-toggle {
+        color: #666;
+    }
+
+    .btn-comment-toggle:hover {
+        color: #198754;
+        background: #f0fdf4;
+        border-color: #ccf1d9;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(25, 135, 84, 0.1);
+    }
+
+    .btn-comment-toggle.active {
+        color: #198754;
+        background: #f0fdf4;
+        border-color: #ccf1d9;
+    }
+
+    .like-count, .reaction-count, .comment-count {
+        font-size: 0.85rem;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .reaction-count-item {
+        font-size: 0.85rem;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .reactions-summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        color: #666;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .reaction-count-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Styles pour le formulaire de création de post */
+    .create-post-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .create-post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .create-post-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eef2f6;
+    }
+
+    .user-avatar-large {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(255, 107, 53, 0.2);
+    }
+
+    .create-post-prompt h5 {
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .create-post-prompt p {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .form-floating {
+        position: relative;
+    }
+
+    .custom-input, .custom-textarea {
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+    }
+
+    .custom-input:focus, .custom-textarea:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    .upload-trigger {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 1rem;
+        border: 2px dashed #e2e8f0;
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f8fafc;
+        color: #64748b;
+    }
+
+    .upload-trigger:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .upload-trigger i {
+        font-size: 1.5rem;
+    }
+
+    .hidden-upload {
+        display: none;
+    }
+
+    .btn-publish {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-publish:hover {
+        box-shadow: 0 8px 20px rgba(255, 107, 53, 0.2);
+    }
+
+    /* Animation pour les erreurs */
+    .is-invalid {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Style pour les messages d'erreur */
+    .invalid-feedback {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        padding-left: 1rem;
+    }
+
+    /* Modifiez également les styles des boutons d'action si nécessaire */
+    .action-btn:hover {
+        background: rgba(255, 107, 53, 0.1);
+        color: var(--primary);
+    }
+
+    /* Pour les animations et autres éléments qui utilisent la couleur */
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 107, 53, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+        }
+    }
+
+    /* Styles pour la section commentaires */
+    .comments-container {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 16px;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .comments-title {
+        color: var(--dark);
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .comments-list {
+        margin: 1rem 0;
+    }
+
+    .comment-item {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .comment-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .comment-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .comment-meta {
+        flex: 1;
+    }
+
+    .comment-author-name {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .comment-time {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .comment-content {
+        color: #334155;
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .comment-gif {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+    }
+
+    /* Style pour l'état vide */
+    .empty-comments {
+        text-align: center;
+        padding: 2rem;
+        color: #64748b;
+    }
+
+    .empty-comments-icon {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .empty-comments h6 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Style du formulaire de commentaire */
+    .comment-form-container {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .comment-input-group {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .comment-actions {
+        position: absolute;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .comment-input {
+        width: 100%;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.75rem;
+        padding-right: 6rem;
+        resize: none;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        background: white;
+    }
+
+    .comment-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    .btn-send, .btn-gif {
+        border: none;
+        background: var(--primary);
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-send:hover, .btn-gif:hover {
+        transform: translateY(-2px);
+        background: var(--secondary);
+    }
+
+    /* Animation pour les nouveaux commentaires */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .comment-item {
+        animation: slideIn 0.3s ease forwards;
+    }
+
+    .gif-preview {
+        margin-top: 1rem;
+        display: none;
+    }
+
+    .gif-preview img {
+        max-width: 200px;
+        border-radius: 8px;
+    }
+
+    .gif-preview.active {
+        display: block;
+    }
+
+    .btn-delete {
+        background-color: #dc3545; /* Couleur rouge */
+        border: none; /* Pas de bordure */
+        border-radius: 5px; /* Coins arrondis */
+        padding: 0.5rem 1rem; /* Espacement interne */
+        transition: background-color 0.3s ease; /* Transition douce */
+    }
+
+    .btn-delete:hover {
+        background-color: #c82333; /* Couleur rouge plus foncé au survol */
+        color: white; /* Texte blanc au survol */
+    }
+
+    .btn-delete i {
+        margin-right: 5px; /* Espacement entre l'icône et le texte */
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Scroll to top on page load/refresh
+    window.onbeforeunload = function () {
+        window.scrollTo(0, 0);
+    };
+
+    // Force scroll to top on page load
+    if (history.scrollRestoration) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    // Toggle comments collapse on comment button click
+    document.querySelectorAll('.btn-comment-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const commentsSection = document.querySelector(`#comments-${postId}`);
+            new bootstrap.Collapse(commentsSection, { toggle: true });
+        });
+    });
+
+    // Like button AJAX
+    document.querySelectorAll('.btn-like').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const postId = this.dataset.postId;
+            const countElement = this.querySelector('.like-count');
+            const heartIcon = this.querySelector('i');
+            
+            try {
+                const response = await fetch(`/forum/${postId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token("authenticate") }}'
+                    }
+                });
+                const data = await response.json();
+                if(data.error) {
+                    showToast('error', data.error);
+                } else {
+                    countElement.textContent = data.likeCount;
+                    // Toggle like/dislike
+                    if (data.liked) {
+                        this.classList.add('active');
+                        heartIcon.classList.add('text-danger');
+                        showToast('success', 'Post liked successfully');
+                    } else {
+                        this.classList.remove('active');
+                        heartIcon.classList.remove('text-danger');
+                        showToast('success', 'Post unliked successfully');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while processing your request.');
+            }
+        });
+    });
+
+    // Handle emoji reactions
+    document.querySelectorAll('.btn-reaction').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const postId = this.dataset.postId;
+            const type = this.dataset.type;
+            const emoji = this.dataset.emoji;
+            
+            try {
+                const formData = new FormData();
+                formData.append('type', type);
+                formData.append('emoji', emoji);
+                formData.append('_token', '{{ csrf_token('react') }}');
+                
+                const response = await fetch(`/forum/${postId}/react`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token('react') }}'
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if(data.error) {
+                    showToast('error', data.error);
+                } else {
+                    const reactionBtn = document.querySelector(`#reaction-btn-${postId}`);
+                    const reactionIcon = reactionBtn.querySelector('.reaction-icon');
+                    const reactionsSummary = reactionBtn.closest('.reactions-display').querySelector('.reactions-summary');
+                    
+                    // Mettre à jour l'icône de l'utilisateur actuel
+                    if (data.added) {
+                        reactionIcon.innerHTML = emoji;
+                    } else {
+                        reactionIcon.innerHTML = '<i class="far fa-smile"></i>';
+                    }
+                    
+                    // Recharger la page pour mettre à jour les compteurs
+                    // Note: Pour une meilleure expérience utilisateur, vous pourriez implémenter 
+                    // une mise à jour dynamique via AJAX en renvoyant les nouvelles données du serveur
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while processing your reaction.');
+            }
+        });
+    });
+
+    // Fonction pour afficher les toasts
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.querySelector('.flash-messages').appendChild(toast);
+        new bootstrap.Toast(toast).show();
+    }
+
+    // Inline edit: Toggle form on "Edit Inline" button click
+    document.querySelectorAll('.btn-inline-edit').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const editForm = document.querySelector(`#edit-form-${postId}`);
+            new bootstrap.Collapse(editForm, { toggle: true });
+        });
+    });
+    // Inline edit: Save button AJAX (with file upload support)
+    document.querySelectorAll('.btn-save-edit').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const postId = this.dataset.postId;
+            const titleInput = document.querySelector(`#edit-title-${postId}`);
+            const contentInput = document.querySelector(`#edit-content-${postId}`);
+            const imageInput = document.querySelector(`#edit-image-${postId}`);
+            const updatedTitle = titleInput.value;
+            const updatedContent = contentInput.value;
+            
+            // Build FormData for file upload
+            const formData = new FormData();
+            formData.append('title', updatedTitle);
+            formData.append('content', updatedContent);
+            if (imageInput.files.length > 0) {
+                formData.append('imageFile', imageInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch(`/forum/${postId}/update-inline`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token("authenticate") }}'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                
+                // Check if the response contains field-specific errors
+                if(data.errors) {
+                    // Title field error handling
+                    if(data.errors.title) {
+                        titleInput.classList.add('is-invalid');
+                        document.getElementById(`edit-title-error-${postId}`).textContent = data.errors.title.join(', ');
+                    } else {
+                        titleInput.classList.remove('is-invalid');
+                        document.getElementById(`edit-title-error-${postId}`).textContent = '';
+                    }
+                    // Content field error handling
+                    if(data.errors.content) {
+                        contentInput.classList.add('is-invalid');
+                        document.getElementById(`edit-content-error-${postId}`).textContent = data.errors.content.join(', ');
+                    } else {
+                        contentInput.classList.remove('is-invalid');
+                        document.getElementById(`edit-content-error-${postId}`).textContent = '';
+                    }
+                    // Image field error handling (if applicable)
+                    if(data.errors.imageFile) {
+                        imageInput.classList.add('is-invalid');
+                        document.getElementById(`edit-image-error-${postId}`).textContent = data.errors.imageFile.join(', ');
+                    } else {
+                        imageInput.classList.remove('is-invalid');
+                        document.getElementById(`edit-image-error-${postId}`).textContent = '';
+                    }
+                    return; // Stop further processing if there are errors.
+                }
+                
+                if(data.error) {
+                    showToast('error', data.error);
+                } else if(data.success) {
+                    // Update the post display with new title, content, and image (if provided)
+                    document.querySelector(`#post-title-${postId}`).textContent = updatedTitle;
+                    document.querySelector(`#post-content-${postId}`).textContent = updatedContent;
+                    if (imageInput.files.length > 0) {
+                        const imageContainer = document.querySelector(`#post-image-container-${postId}`);
+                        imageContainer.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(imageInput.files[0]);
+                        img.classList.add('img-fluid', 'rounded-3', 'shadow-sm');
+                        img.style.maxHeight = '400px';
+                        img.style.objectFit = 'cover';
+                        imageContainer.appendChild(img);
+                    }
+                    // Close the edit form after saving
+                    const editForm = document.querySelector(`#edit-form-${postId}`);
+                    new bootstrap.Collapse(editForm, { toggle: true });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while processing your request.');
+            }
+        });
+    });
+
+    // GIF Picker functionality using GIPHY
+    function openGifPicker(postId) {
+        const apiKey = 'sfNypyv5U1NlTahFkuLT6fI0ArjY4TNX'; // Replace with your GIPHY API key
+        const gifModal = document.createElement('div');
+        gifModal.className = 'gif-picker-modal';
+        gifModal.innerHTML = `
+            <div class="gif-picker-content">
+                <div class="gif-search">
+                    <input type="text" placeholder="Search GIFs..." id="gif-search-${postId}">
+                </div>
+                <div class="gif-results" id="gif-results-${postId}"></div>
+            </div>
+        `;
+        document.body.appendChild(gifModal);
+
+        const searchInput = document.getElementById(`gif-search-${postId}`);
+        const resultsDiv = document.getElementById(`gif-results-${postId}`);
+
+        function searchGifs(query) {
+            const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${query}&limit=20&rating=g`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    data.data.forEach(gif => {
+                        const img = document.createElement('img');
+                        img.src = gif.images.fixed_height_small.url;
+                        img.onclick = () => selectGif(gif.images.fixed_height.url, postId);
+                        resultsDiv.appendChild(img);
+                    });
+                });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            if (e.target.value) {
+                searchGifs(e.target.value);
+            }
+        });
+
+        // Initial trending GIFs
+        fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${apiKey}&limit=20&rating=g`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = '';
+                data.data.forEach(gif => {
+                    const img = document.createElement('img');
+                    img.src = gif.images.fixed_height_small.url;
+                    img.onclick = () => selectGif(gif.images.fixed_height.url, postId);
+                    resultsDiv.appendChild(img);
+                });
+            });
+
+        // Close modal when clicking outside
+        gifModal.addEventListener('click', (e) => {
+            if (e.target === gifModal) {
+                gifModal.remove();
+            }
+        });
+    }
+
+    function selectGif(gifUrl, postId) {
+        document.getElementById(`gifUrl-${postId}`).value = gifUrl;
+        const preview = document.getElementById(`gif-preview-${postId}`);
+        preview.innerHTML = `<img src="${gifUrl}" alt="Selected GIF">`;
+        preview.classList.add('active');
+        document.querySelector('.gif-picker-modal').remove();
+    }
+
+    window.openGifPicker = openGifPicker;
+
+    document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.postId;
+            const editForm = document.querySelector(`#edit-form-${postId}`);
+            new bootstrap.Collapse(editForm, { toggle: true });
+        });
+    });
+});
+</script>
+
+<style>
+    .gif-picker-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .gif-picker-content {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .gif-search {
+        margin-bottom: 20px;
+    }
+
+    .gif-search input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+
+    .gif-results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .gif-results img {
+        width: 100%;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .gif-results img:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}

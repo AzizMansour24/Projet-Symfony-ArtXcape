@@ -1,0 +1,833 @@
+{% extends 'base2.html.twig' %}
+{% block body %}
+<div class="container-fluid">
+<br><br><br>
+    <h2 class="card-title" style="color: white;">Gestion des Donations</h2>
+    
+    <!-- Add search and export controls -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text bg-primary text-white">
+                    <i class="mdi mdi-magnify"></i>
+                </span>
+                <input type="text" 
+                       id="donorSearch" 
+                       class="form-control" 
+                       placeholder="Rechercher par nom du donateur..."
+                       autocomplete="off">
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                    <i class="mdi mdi-close"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add no results message -->
+    <div id="noResults" class="alert alert-info d-none" role="alert">
+        <i class="mdi mdi-information me-2"></i>
+        Aucune donation trouvée pour cette recherche
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered" id="donationsTable">
+            <thead>
+                <tr>
+                    <th style="background-color: white;" onclick="sortTable(0)">Id</th>
+                    <th style="background-color: white;" onclick="sortTable(1)">Donateur</th>
+                    <th style="background-color: white;" onclick="sortTable(2)">Email</th>
+                    <th style="background-color: white;" onclick="sortTable(3)">Montant</th>
+                    <th style="background-color: white;" onclick="sortTable(4)">Date</th>
+                    <th style="background-color: white;" onclick="sortTable(5)">Méthode Paiement</th>
+                    <th style="background-color: white;" onclick="sortTable(6)">Numéro Téléphone</th>
+                    <th style="background-color: white;" onclick="sortTable(7)">Événement</th>
+                    <th style="background-color: white;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donation in donations %}
+                <tr>
+                    <td>{{ donation.iddon }}</td>
+                    <td>{{ donation.donorname }}</td>
+                    <td>{{ donation.email }}</td>
+                    <td><label class="badge badge-success">{{ donation.montant }} DT</label></td>
+                    <td>{{ donation.date|date('d M Y') }}</td>
+                    <td><label class="badge badge-info">{{ donation.payment_method }}</label></td>
+                    <td>{{ donation.num_tlf }}</td>
+                    <td><label class="badge badge-warning">
+                        {% if donation.idevent %}
+                            {{ donation.idevent.name ?? donation.idevent.idevent }}
+                        {% else %}
+                            No Event
+                        {% endif %}
+                    </label></td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="#" 
+                               class="btn btn-info btn-sm"
+                               data-bs-toggle="modal" 
+                               data-bs-target="#donationModal{{ donation.iddon }}"
+                               title="Details">
+                                <i class="mdi mdi-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Modal for donation {{ donation.iddon }} -->
+                <div class="modal fade" id="donationModal{{ donation.iddon }}" tabindex="-1" aria-labelledby="donationModalLabel{{ donation.iddon }}" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="donationModalLabel{{ donation.iddon }}">
+                                    Détails de la donation #{{ donation.iddon }}
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-0 shadow-sm mb-3">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-3 text-muted">Information du donateur</h6>
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-account text-primary"></i>
+                                                        <strong>Nom:</strong> {{ donation.donorname }}
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-email text-primary"></i>
+                                                        <strong>Email:</strong> {{ donation.email }}
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-phone text-primary"></i>
+                                                        <strong>Téléphone:</strong> {{ donation.num_tlf }}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-0 shadow-sm mb-3">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-3 text-muted">Détails de la donation</h6>
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-cash text-success"></i>
+                                                        <strong>Montant:</strong> 
+                                                        <span class="badge bg-success">{{ donation.montant }} DT</span>
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-calendar text-primary"></i>
+                                                        <strong>Date:</strong> {{ donation.date|date('d M Y H:i') }}
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-credit-card text-primary"></i>
+                                                        <strong>Méthode de paiement:</strong>
+                                                        <span class="badge bg-info">{{ donation.payment_method }}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if donation.idevent %}
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-3 text-muted">Information de l'événement</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-calendar-star text-warning"></i>
+                                                        <strong>Nom:</strong> 
+                                                        <span class="badge bg-warning text-dark">
+                                                            {{ donation.idevent.titre }}
+                                                        </span>
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-map-marker text-danger"></i>
+                                                        <strong>Lieu:</strong> 
+                                                        {{ donation.idevent.lieu }}
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-calendar text-info"></i>
+                                                        <strong>Date:</strong> 
+                                                        {{ donation.idevent.dateEvenement|date('d M Y') }}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <ul class="list-unstyled">
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-clock-outline text-primary"></i>
+                                                        <strong>Heure:</strong> 
+                                                        {{ donation.idevent.timestart|date('H:i') }}
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-account-group text-success"></i>
+                                                        <strong>Capacité:</strong> 
+                                                        {{ donation.idevent.nombreBillets }} personnes
+                                                    </li>
+                                                    <li class="mb-2">
+                                                        <i class="mdi mdi-cash-multiple text-warning"></i>
+                                                        <strong>Prix:</strong> 
+                                                        <span class="badge bg-success">
+                                                            {{ donation.idevent.seatprice }} DT
+                                                        </span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        {% if donation.idevent.description %}
+                                        <div class="mt-3">
+                                            <h6 class="text-muted mb-2">Description</h6>
+                                            <p class="text-muted">
+                                                {{ donation.idevent.description }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Add pagination controls -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="text-muted">
+                Affichage <span id="startIndex">1</span> à <span id="endIndex">10</span> sur <span id="totalItems">{{ donations|length }}</span> donations
+            </div>
+            <div class="btn-group">
+                <button id="prevPage" class="btn btn-outline-primary">
+                    <i class="mdi mdi-chevron-left"></i> Précédent
+                </button>
+                <button id="nextPage" class="btn btn-outline-primary">
+                    Suivant <i class="mdi mdi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace the Summary Cards section with this enhanced version -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="statistics-cards">
+                <!-- Total Donations -->
+                <div class="stat-card primary">
+                    <div class="stat-card__content">
+                        <div class="stat-card__info">
+                            <p class="stat-card__title">Total des donations</p>
+                            <h3 class="stat-card__value">{{ totalAmount }} DT</h3>
+                            <p class="stat-card__change {% if percentageChange >= 0 %}positive{% else %}negative{% endif %}">
+                                <i class="mdi {% if percentageChange >= 0 %}mdi-trending-up{% else %}mdi-trending-down{% endif %}"></i>
+                                {{ percentageChange }}% ce mois
+                            </p>
+                        </div>
+                        <div class="stat-card__icon">
+                            <i class="mdi mdi-cash-multiple"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Donor Count -->
+                <div class="stat-card success">
+                    <div class="stat-card__content">
+                        <div class="stat-card__info">
+                            <p class="stat-card__title">Donateurs</p>
+                            <h3 class="stat-card__value">{{ donorCount }}</h3>
+                            <p class="stat-card__change">
+                                <i class="mdi mdi-account-multiple"></i>
+                                Donateurs uniques
+                            </p>
+                        </div>
+                        <div class="stat-card__icon">
+                            <i class="mdi mdi-account-group"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Donation -->
+                <div class="stat-card info">
+                    <div class="stat-card__content">
+                        <div class="stat-card__info">
+                            <p class="stat-card__title">Moyenne par don</p>
+                            <h3 class="stat-card__value">
+                                {% if donorCount > 0 %}
+                                    {{ (totalAmount / donorCount)|number_format(2) }} DT
+                                {% else %}
+                                    0.00 DT
+                                {% endif %}
+                            </h3>
+                            <p class="stat-card__change">
+                                <i class="mdi mdi-chart-arc"></i>
+                                Moyenne globale
+                            </p>
+                        </div>
+                        <div class="stat-card__icon">
+                            <i class="mdi mdi-chart-bar"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Goal -->
+                <div class="stat-card warning">
+                    <div class="stat-card__content">
+                        <div class="stat-card__info">
+                            <p class="stat-card__title">Objectif mensuel</p>
+                            <h3 class="stat-card__value">{{ monthlyProgress }}%</h3>
+                            <div class="stat-card__progress">
+                                <div class="progress-bar" style="width: {{ monthlyProgress }}%"></div>
+                            </div>
+                        </div>
+                        <div class="stat-card__icon">
+                            <i class="mdi mdi-flag"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Replace the Analytics Charts section -->
+    <div class="row mt-4">
+        <!-- Donation Trends Chart -->
+        <div class="col-lg-8 grid-margin stretch-card">
+            <div class="card analytics-card">
+                <div class="card-body">
+                    <h4 class="card-title">Tendance des donations</h4>
+                    <div class="chart-container">
+                        <canvas id="donationTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods Chart -->
+        <div class="col-lg-4 grid-margin stretch-card">
+            <div class="card analytics-card">
+                <div class="card-body">
+                    <h4 class="card-title">Méthodes de paiement</h4>
+                    <div class="chart-container">
+                        <canvas id="paymentMethodsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour le tri des colonnes -->
+<script>
+function sortTable(columnIndex) {
+    const table = document.getElementById("donationsTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const isAscending = table.getAttribute("data-sort-order") === "asc";
+
+    rows.sort((a, b) => {
+        const aText = a.children[columnIndex].textContent.trim();
+        const bText = b.children[columnIndex].textContent.trim();
+
+        return isAscending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+    });
+
+    // Clear the existing rows and append the sorted rows
+    tbody.innerHTML = "";
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Toggle sort order
+    table.setAttribute("data-sort-order", isAscending ? "desc" : "asc");
+}
+
+// Search functionality
+document.getElementById('donorSearch').addEventListener('keyup', function() {
+    const searchText = this.value.toLowerCase();
+    const tableRows = document.querySelectorAll('#donationsTable tbody tr');
+    let hasResults = false;
+
+    tableRows.forEach(row => {
+        const cells = Array.from(row.getElementsByTagName('td'));
+        const rowText = cells.map(cell => cell.textContent.toLowerCase()).join(' ');
+        if (rowText.includes(searchText)) {
+            row.style.display = '';
+            hasResults = true;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    document.getElementById('noResults').classList.toggle('d-none', hasResults);
+});
+</script>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('donorSearch');
+    const clearButton = document.getElementById('clearSearch');
+    const table = document.getElementById('donationsTable');
+    const rows = table.getElementsByTagName('tr');
+    const noResults = document.getElementById('noResults');
+
+    // Pagination variables
+    const itemsPerPage = 10;
+    let currentPage = 1;
+    let filteredRows = [];
+
+    // Pagination elements
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    const startIndex = document.getElementById('startIndex');
+    const endIndex = document.getElementById('endIndex');
+    const totalItems = document.getElementById('totalItems');
+
+    function updatePagination() {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = Math.min(start + itemsPerPage, filteredRows.length);
+        
+        // Update pagination text
+        startIndex.textContent = filteredRows.length ? start + 1 : 0;
+        endIndex.textContent = end;
+        totalItems.textContent = filteredRows.length;
+
+        // Enable/disable buttons
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = end >= filteredRows.length;
+
+        // Show/hide rows based on current page
+        filteredRows.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+    }
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        filteredRows = [];
+
+        // Skip header row (index 0)
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            // Skip modal elements
+            if (!row.getElementsByTagName('td').length) continue;
+
+            const donorName = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+            
+            if (donorName.includes(searchTerm)) {
+                filteredRows.push(row);
+            }
+        }
+
+        // Reset to first page when filtering
+        currentPage = 1;
+        updatePagination();
+
+        // Show/hide no results message
+        noResults.classList.toggle('d-none', filteredRows.length > 0);
+    }
+
+    // Initialize pagination
+    Array.from(rows).forEach((row, index) => {
+        if (index > 0 && row.getElementsByTagName('td').length) {
+            filteredRows.push(row);
+        }
+    });
+    updatePagination();
+
+    // Event listeners
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+        }
+    });
+
+    nextButton.addEventListener('click', () => {
+        const maxPage = Math.ceil(filteredRows.length / itemsPerPage);
+        if (currentPage < maxPage) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+
+    searchInput.addEventListener('input', filterTable);
+    
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        filterTable();
+        searchInput.focus();
+    });
+});
+</script>
+<!--ajouter l lien hedha-->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Donation Trends Chart
+    const trendsCtx = document.getElementById('donationTrendsChart').getContext('2d');
+    new Chart(trendsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ donationDates|json_encode|raw }},
+            datasets: [{
+                label: 'Montant des donations',
+                data: {{ donationAmounts|json_encode|raw }},
+                borderColor: '#2196f3',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(33, 150, 243, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                title: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        drawBorder: false,
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Payment Methods Chart
+    const methodsCtx = document.getElementById('paymentMethodsChart').getContext('2d');
+    new Chart(methodsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ paymentMethods|json_encode|raw }},
+            datasets: [{
+                data: {{ paymentMethodCounts|json_encode|raw }},
+                backgroundColor: [
+                    '#2196f3',
+                    '#4CAF50',
+                    '#FFC107',
+                    '#9C27B0'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 10
+                        },
+                        padding: 10
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .modal-header {
+        border-radius: 0.25rem 0.25rem 0 0;
+    }
+    .modal-content {
+        border: none;
+        border-radius: 0.5rem;
+    }
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    .list-unstyled li {
+        padding: 8px;
+        border-radius: 4px;
+    }
+    .list-unstyled li:hover {
+        background-color: rgba(0,0,0,0.03);
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .mdi {
+        margin-right: 8px;
+    }
+
+    /* Add new styles */
+    .table-filtering tbody tr {
+        transition: all 0.3s ease-in-out;
+    }
+
+    #donorSearch {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    .input-group-text {
+        border: 1px solid #2196f3;
+    }
+
+    #clearSearch {
+        border-color: #ced4da;
+    }
+
+    #clearSearch:hover {
+        background-color: #e9ecef;
+    }
+
+    .alert {
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Improve table hover states */
+    .table tbody tr:hover {
+        background-color: rgba(33, 150, 243, 0.05);
+    }
+
+    /* Pagination styles */
+    .btn-group .btn {
+        padding: 0.375rem 0.75rem;
+    }
+    
+    .btn-group .btn i {
+        font-size: 1.1em;
+        vertical-align: middle;
+    }
+    
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .icon-shape {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-shape i {
+        font-size: 24px;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #2196f3, #1976d2);
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(45deg, #4CAF50, #388E3C);
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(45deg, #00BCD4, #0097A7);
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(45deg, #FFC107, #FFA000);
+    }
+
+    .progress {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .card {
+        box-shadow: 0 0 35px 0 rgba(154, 161, 171, 0.15);
+    }
+
+    .card-title {
+        margin-bottom: 1.5rem;
+        color: #333;
+        font-weight: 500;
+    }
+
+    /* New Statistics Cards Styles */
+    .statistics-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .stat-card__content {
+        padding: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .stat-card__info {
+        flex: 1;
+    }
+
+    .stat-card__title {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card__value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .stat-card__change {
+        font-size: 0.813rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .stat-card__change.positive { color: #4caf50; }
+    .stat-card__change.negative { color: #f44336; }
+
+    .stat-card__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .stat-card__progress {
+        height: 4px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 2px;
+        margin-top: 0.75rem;
+        overflow: hidden;
+    }
+
+    .stat-card__progress .progress-bar {
+        height: 100%;
+        border-radius: 2px;
+        background: currentColor;
+        transition: width 0.3s ease;
+    }
+
+    /* Card Variants */
+    .stat-card.primary {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+    }
+
+    .stat-card.success {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+    }
+
+    .stat-card.info {
+        background: linear-gradient(135deg, #00bcd4, #00acc1);
+        color: white;
+    }
+
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+        color: white;
+    }
+
+    .stat-card.primary .stat-card__title,
+    .stat-card.success .stat-card__title,
+    .stat-card.info .stat-card__title,
+    .stat-card.warning .stat-card__title,
+    .stat-card.primary .stat-card__value,
+    .stat-card.success .stat-card__value,
+    .stat-card.info .stat-card__value,
+    .stat-card.warning .stat-card__value,
+    .stat-card.primary .stat-card__change,
+    .stat-card.success .stat-card__change,
+    .stat-card.info .stat-card__change,
+    .stat-card.warning .stat-card__change {
+        color: white;
+    }
+
+    .stat-card.primary .stat-card__icon,
+    .stat-card.success .stat-card__icon,
+    .stat-card.info .stat-card__icon,
+    .stat-card.warning .stat-card__icon {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+
+    /* Add these new styles for the analytics cards */
+    .analytics-card {
+        height: 320px;
+    }
+
+    .analytics-card .card-body {
+        padding: 1rem;
+    }
+
+    .analytics-card .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 240px;
+        width: 100%;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base2.html.twig' %}
+
+{% block title %}Éditer l'Offre d'Emploi{% endblock %}
+
+{% block body %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm border-0 w-75">
+        <div class="card-header  border-0 text-center">
+            <h1 class="card-title mb-0">Éditer l'Offre d'Emploi : {{ emploi.titre }}</h1>
+        </div>
+        <div class="card-body p-4">
+            {{ form_start(form, {'attr': {'class': 'form-horizontal'}}) }}
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Titre</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le titre de l\'offre'}}) }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Description</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Décrivez l\'offre en détail'}}) }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Compétences Requises</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.competences_requises, {'attr': {'class': 'form-control', 'placeholder': 'Listez les compétences nécessaires'}}) }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Budget</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.budget, {'attr': {'class': 'form-control', 'placeholder': 'Indiquez le budget'}}) }}
+                </div>
+            </div>
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Lieu</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.lieu, {'attr': {'class': 'form-control', 'placeholder': 'Indiquez le lieu de travail'}}) }}
+                </div>
+            </div>
+
+            
+
+            <div class="form-group row mb-4">
+                <label class="col-sm-3 col-form-label">Statut</label>
+                <div class="col-sm-9">
+                    {{ form_widget(form.statut, {'attr': {'class': 'form-control'}}) }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-sm-9 offset-sm-3">
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="fas fa-save mr-2"></i>Sauvegarder
+                    </button>
+                    <a href="{{ path('backoffice_emploi') }}" class="btn btn-outline-secondary btn-block mt-3">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </a>
+                </div>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
