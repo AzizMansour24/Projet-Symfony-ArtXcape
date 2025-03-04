@@ -39,8 +39,17 @@ ArtXcape est une plateforme web développée en **Symfony** permettant aux artis
 ---
 
 ## 🛠️ Installation et Configuration
+Symfony 6
+Twig
+Bootstrap
+Doctrine (MySQL)
+JavaScript / jQuery
 
-1️⃣ **Cloner le projet** :
-```bash
-git clone https://github.com/AzizMansour24/Projet-Symfony-ArtXcape.git
-cd Projet-Symfony-ArtXcape
+📸 Aperçu du Projet!!
+[frontPNG](https://github.com/user-attachments/assets/0491ea8e-ec0a-4498-a9c1-5e320056c79b)
+
+
+
+🤝 Contributeurs
+Aziz Mansour 
+Equipe : CodeZilla & The Boys
