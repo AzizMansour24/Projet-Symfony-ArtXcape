@@ -47,6 +47,16 @@ JavaScript / jQuery
 
 📸 Aperçu du Projet!!
 [frontPNG](https://github.com/user-attachments/assets/0491ea8e-ec0a-4498-a9c1-5e320056c79b)
+![Capture2](https://github.com/user-attachments/assets/51e20ffe-2a2a-49be-8183-b8db9c32e6b1)
+![Capture3](https://github.com/user-attachments/assets/60d0d782-a4e2-4984-a339-180fa44df803)
+![Capture4](https://github.com/user-attachments/assets/71e930fa-0fca-43f6-b0fd-3016fa2e0c76)
+![Capture5](https://github.com/user-attachments/assets/748fffd5-ef40-49a0-be79-82f496f728bb)
+![Capture6](https://github.com/user-attachments/assets/0629ca60-a6c4-44dc-9dad-47f4c660fc39)
+![Capture7](https://github.com/user-attachments/assets/a30b23d6-d1f7-41b0-bd53-0bf27b5fcf62)
+![Capture8](https://github.com/user-attachments/assets/096d1a9c-20f5-479e-a7e4-9adb15ce08b9)
+![Capture9](https://github.com/user-attachments/assets/40acf07b-40f5-47e1-b348-84db8f6d9b18)
+
+
 
 
 
